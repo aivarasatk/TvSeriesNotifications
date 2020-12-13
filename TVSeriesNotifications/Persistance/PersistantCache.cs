@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Caching;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TVSeriesNotifications.Persistance
 {
@@ -18,7 +15,7 @@ namespace TVSeriesNotifications.Persistance
 
         public void Add<T>(string key, T value)
         {
-            lock(_fileCache)
+            lock (_fileCache)
                 _fileCache.Add(key, value, DateTimeOffset.Now.AddYears(10));
         }
 

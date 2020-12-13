@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -16,13 +17,11 @@ using TVSeriesNotifications.Persistance;
 
 namespace TVSeriesNotifications
 {
-    class Program
+    public static class Program
     {
         private const string BaseSuggestionUrl = "https://v2.sg.media-imdb.com/suggestion";
         private const string BaseImdbUrl = "https://www.imdb.com";
         private const string BaseTitleSearch = "https://www.imdb.com/title";
-
-        private static readonly int _coreCount;
 
         private static readonly HttpClient _httpClient;
 
@@ -33,10 +32,8 @@ namespace TVSeriesNotifications
         private static readonly INotificationService _notificationService;
         private static readonly ITvShowRepository _tvShowRepository;
 
-
         static Program()
         {
-            _coreCount = Environment.ProcessorCount * 2;//yields 40% better performace than ProcessorCount. And 8.3x faster than single core
             _httpClient = new HttpClient();
 
             _cacheTvShowIds = new PersistantCache("Cache/TvShowIds");
@@ -44,7 +41,7 @@ namespace TVSeriesNotifications
             _cacheLatestAiredSeasons = new PersistantCache("Cache/LatestAiredSeasons");
 
             _notificationService = new FileNotificationService();
-            _tvShowRepository = new FileTvShowRepository();
+            _tvShowRepository = new FileTvShowRepository(new FileSystem());
         }
 
         public static async Task Main()
@@ -52,8 +49,8 @@ namespace TVSeriesNotifications
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                var tvShows = await _tvShowRepository.RetrieveTvShows();
-                await CheckForNewSeasons(tvShows);
+                var tvShows = await _tvShowRepository.RetrieveTvShows().ConfigureAwait(false);
+                await CheckForNewSeasons(tvShows).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not ImdbHtmlChangedException)
             {
@@ -66,15 +63,14 @@ namespace TVSeriesNotifications
 
         private static async Task CheckForNewSeasons(IEnumerable<string> tvShows)
         {
-            var shows = tvShows.Except(_cacheIgnoredTvShows.Keys()).ToArray();
-            await shows.SafeParallelAsync(async tvShow => await CheckForNewSeason(tvShow)).ConfigureAwait(false);
+            await tvShows.SafeParallelAsync(async tvShow => await CheckForNewSeason(tvShow).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         private static async Task CheckForNewSeason(string tvshow)
         {
             try
             {
-                var (success, tvShowId) = await TryGetTvShowId(tvshow);
+                var (success, tvShowId) = await TryGetTvShowId(tvshow).ConfigureAwait(false);
                 if (!success)
                     return;
 
@@ -82,7 +78,7 @@ namespace TVSeriesNotifications
 
                 var tvShowPageContent = await GetRequestAsync(Path.Combine(BaseTitleSearch, tvShowId) + "/");
 
-                var seasonNodes = SeasonNodes(tvShowPageContent);
+                var seasonNodes = SeasonNodes(tvShowPageContent).ToArray();
 
                 if (_cacheLatestAiredSeasons.TryGet(tvshow, out int latestAiredSeason))
                 {
@@ -95,7 +91,7 @@ namespace TVSeriesNotifications
                 }
                 else
                 {
-                    await SetLatestAiredSeason(tvshow, seasonNodes);
+                    await SetLatestAiredSeason(tvshow, seasonNodes).ConfigureAwait(false);
                 }
             }
             catch (ImdbHtmlChangedException iex)
@@ -274,7 +270,7 @@ namespace TVSeriesNotifications
 
         private static async Task<string> GetRequestAsync(string url)
         {
-            var response = await _httpClient.GetAsync(url);
+            using var response = await _httpClient.GetAsync(url);
             return await response.Content.ReadAsStringAsync();
         }
 

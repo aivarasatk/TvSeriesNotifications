@@ -20,13 +20,13 @@ namespace TVSeriesNotifications.JsonModels
 
         [Required]
         [DataMember(Name = "q")]
-        private string category;
+        private string _category;
 
-        public TVCategory Category 
-        { 
+        public TVCategory Category
+        {
             get
             {
-                return category switch
+                return _category switch
                 {
                     "TV series" => TVCategory.TVSeries,
                     "TV mini-series" => TVCategory.TVMiniSeries,
