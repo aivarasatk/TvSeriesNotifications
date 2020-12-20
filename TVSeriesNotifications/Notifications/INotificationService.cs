@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TVSeriesNotifications.DTO;
 
 namespace TVSeriesNotifications.Notifications
 {
     public interface INotificationService
     {
-        Task NotifyAboutErrors(string message);
+        Task NotifyAboutErrorsAsync(string message);
 
-        Task NotifyAboutNewSeason(string tvShow, int newSeason);
+        Task NotifyNewSeasonAsync(NewSeason season);
     }
 }

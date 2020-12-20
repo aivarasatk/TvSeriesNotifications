@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using TVSeriesNotifications.DTO;
 
 namespace TVSeriesNotifications.Notifications
 {
@@ -20,7 +21,7 @@ namespace TVSeriesNotifications.Notifications
             Directory.CreateDirectory(path);
         }
 
-        public Task NotifyAboutErrors(string message)
+        public Task NotifyAboutErrorsAsync(string message)
         {
             lock (ErrorFileName)
             {
@@ -28,11 +29,14 @@ namespace TVSeriesNotifications.Notifications
             }
         }
 
-        public Task NotifyAboutNewSeason(string tvShow, int newSeason)
+        public Task NotifyNewSeasonAsync(NewSeason season)
         {
+            if (season is null)
+                throw new ArgumentNullException(nameof(season));
+
             lock (NewSeasonFileName)
             {
-                return File.AppendAllTextAsync(Path.Combine(_fileLocation, NewSeasonFileName), $"{tvShow} season {newSeason} has aired");
+                return File.AppendAllTextAsync(Path.Combine(_fileLocation, NewSeasonFileName), $"{season.TvShow} season {season.Season} has aired");
             }
         }
     }

@@ -4,7 +4,7 @@ using System.Runtime.Caching;
 
 namespace TVSeriesNotifications.Persistance
 {
-    public class PersistantCache : IPersistantCache
+    public class PersistantCache<T> : IPersistantCache<T>
     {
         private FileCache _fileCache;
 
@@ -13,19 +13,19 @@ namespace TVSeriesNotifications.Persistance
             _fileCache = new FileCache(cacheLocation);
         }
 
-        public void Add<T>(string key, T value)
+        public void Add(string key, T value)
         {
             lock (_fileCache)
                 _fileCache.Add(key, value, DateTimeOffset.Now.AddYears(10));
         }
 
-        public void Update<T>(string key, T value)
+        public void Update(string key, T value)
         {
             lock (_fileCache)
                 _fileCache.Set(key, value, DateTimeOffset.Now.AddYears(10));
         }
 
-        public bool TryGet<T>(string key, out T value)
+        public bool TryGet(string key, out T value)
         {
             lock (_fileCache)
             {
