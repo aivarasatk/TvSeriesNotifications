@@ -21,22 +21,22 @@ namespace TVSeriesNotifications.Notifications
             Directory.CreateDirectory(path);
         }
 
-        public Task NotifyAboutErrorsAsync(string message)
+        public void NotifyAboutErrors(string message)
         {
             lock (ErrorFileName)
             {
-                return File.AppendAllTextAsync(Path.Combine(_fileLocation, ErrorFileName), message);
+                File.AppendAllText(Path.Combine(_fileLocation, ErrorFileName), message);
             }
         }
 
-        public Task NotifyNewSeasonAsync(NewSeason season)
+        public void NotifyNewSeason(NewSeason season)
         {
             if (season is null)
                 throw new ArgumentNullException(nameof(season));
 
             lock (NewSeasonFileName)
             {
-                return File.AppendAllTextAsync(Path.Combine(_fileLocation, NewSeasonFileName), $"{season.TvShow} season {season.Season} has aired");
+                File.AppendAllText(Path.Combine(_fileLocation, NewSeasonFileName), $"{season.TvShow} season {season.Season} has aired");
             }
         }
     }

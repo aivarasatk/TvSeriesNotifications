@@ -7,7 +7,6 @@ namespace TVSeriesNotifications.Persistance
         /// <summary>
         /// If key exists in the cache the value is set and true is retured, otherwise returns false and default value is set.
         /// </summary>
-        /// <typeparam name="T">Any object.</typeparam>
         /// <returns>True if value exists, false otherwise.</returns>
         bool TryGet(string key, out T value);
 

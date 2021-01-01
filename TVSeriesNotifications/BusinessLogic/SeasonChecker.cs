@@ -46,6 +46,11 @@ namespace TVSeriesNotifications.BusinessLogic
 #if DEBUG
             Console.WriteLine(tvShow);
 #endif
+            return await NewSeasonStatus(tvShow, tvShowId);
+        }
+
+        private async Task<(bool newSeasonAired, NewSeason seasonInfo)> NewSeasonStatus(string tvShow, string tvShowId)
+        {
             var tvShowPageContent = await _client.GetPageContentsAsync(tvShowId);
 
             var seasonNodes = SeasonNodes(tvShowPageContent).ToArray();
@@ -57,8 +62,10 @@ namespace TVSeriesNotifications.BusinessLogic
                 if (firstUpcomingSeason is null && ShowIsCancelled(tvShowPageContent))
                 {
                     MarkShowAsCancelled(tvShow);
+                    return AsyncTryResponse<NewSeason>(false, null);
                 }
-                else if (firstUpcomingSeason is not null && await UpcomingSeasonAired(firstUpcomingSeason))
+
+                if (await UpcomingSeasonAired(firstUpcomingSeason))
                 {
                     var season = int.Parse(firstUpcomingSeason.InnerText);
                     _cacheLatestAiredSeasons.Update(tvShow, season);
@@ -75,7 +82,7 @@ namespace TVSeriesNotifications.BusinessLogic
         }
 
         private async Task<bool> UpcomingSeasonAired(HtmlNode firstUpcomingSeason)
-            => await IsNewestAiredSeason(firstUpcomingSeason.Attributes.Single(a => a.Name == "href").Value);
+            => firstUpcomingSeason is not null && await IsNewestAiredSeason(firstUpcomingSeason.Attributes.Single(a => a.Name == "href").Value);
 
         private void MarkShowAsCancelled(string searchValue)
         {
@@ -121,7 +128,10 @@ namespace TVSeriesNotifications.BusinessLogic
 
             var (success, tvShowSuggestion) = await TryGetTvShowSuggestionAsync(searchValue);
             if (!success)
+            {
+                _cacheIgnoredTvShows.Add(searchValue, string.Empty);
                 return AsyncTryResponse<string>(success: false);
+            }
 
             if (ShowIsOnGoing(tvShowSuggestion))
             {
@@ -135,8 +145,8 @@ namespace TVSeriesNotifications.BusinessLogic
             }
         }
 
-        private (bool success, T tvShowId) AsyncTryResponse<T>(bool success, T id = default)
-            => (success, id);
+        private (bool success, T value) AsyncTryResponse<T>(bool success, T value = default)
+            => (success, value);
 
         private bool ShowIsOnGoing(Suggestion tvShowSuggestion)
         {
@@ -183,17 +193,13 @@ namespace TVSeriesNotifications.BusinessLogic
                 && s.YearStart > 2000);
 
             if (tvShow is null)
-            {
-                _cacheIgnoredTvShows.Add(searchValue, string.Empty);
                 return AsyncTryResponse<Suggestion>(false);
-            }
 
             return AsyncTryResponse(success: true, tvShow);
         }
 
         private bool IsUpcomingSeason(HtmlNode arg, int latestAiredSeason)// there can be more than one confirmed seasons
             => int.Parse(arg.InnerText.Trim()) > latestAiredSeason;
-
 
         private async Task<int> FindLatestAiredSeason(IEnumerable<HtmlNode> seasonLinks)
         {

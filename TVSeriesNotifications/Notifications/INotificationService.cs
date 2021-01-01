@@ -9,8 +9,8 @@ namespace TVSeriesNotifications.Notifications
 {
     public interface INotificationService
     {
-        Task NotifyAboutErrorsAsync(string message);
+        void NotifyAboutErrors(string message);
 
-        Task NotifyNewSeasonAsync(NewSeason season);
+        void NotifyNewSeason(NewSeason season);
     }
 }

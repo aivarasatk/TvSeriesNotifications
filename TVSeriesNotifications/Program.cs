@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Abstractions;
-using System.Net.Http;
 using System.Threading.Tasks;
 using SafeParallel;
 using TVSeriesNotifications.Api;
@@ -41,11 +40,11 @@ namespace TVSeriesNotifications
             }
             catch (ImdbHtmlChangedException ihce)
             {
-                await _notificationService.NotifyAboutErrorsAsync($"{DateTime.Now}: HTML changed: {ihce.Message}");
+                _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed: {ihce.Message}");
             }
             catch (Exception ex)
             {
-                await _notificationService.NotifyAboutErrorsAsync($"{DateTime.Now}: Unexpected exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
+                _notificationService.NotifyAboutErrors($"{DateTime.Now}: Unexpected exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
             }
 
             Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
@@ -59,7 +58,7 @@ namespace TVSeriesNotifications
                 var (newSeasonAired, newSeason) = await _seasonChecker.TryCheckForNewSeasonAsync(tvShow);
                 if (newSeasonAired)
                 {
-                    await _notificationService.NotifyNewSeasonAsync(newSeason);
+                    _notificationService.NotifyNewSeason(newSeason);
                 }
             }).ConfigureAwait(false);
         }
