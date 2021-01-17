@@ -12,5 +12,10 @@ namespace TVSeriesNotifications.CustomExceptions
             : base(message)
         {
         }
+
+        public ImdbHtmlChangedException(string message, Exception ex)
+            : base(message, ex)
+        {
+        }
     }
 }

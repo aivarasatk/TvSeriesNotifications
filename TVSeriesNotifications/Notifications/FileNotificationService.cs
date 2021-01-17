@@ -16,11 +16,6 @@ namespace TVSeriesNotifications.Notifications
             _fileLocation = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         }
 
-        public FileNotificationService(string path)
-        {
-            Directory.CreateDirectory(path);
-        }
-
         public void NotifyAboutErrors(string message)
         {
             lock (ErrorFileName)
