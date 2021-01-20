@@ -1,10 +1,8 @@
-﻿using HtmlAgilityPack;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using HtmlAgilityPack;
 using TVSeriesNotifications.CustomExceptions;
 
 namespace TVSeriesNotifications.BusinessLogic
@@ -42,7 +40,13 @@ namespace TVSeriesNotifications.BusinessLogic
             var yearRangeStart = yearRangeNode.InnerText.IndexOf('(');
             var yearRangeEnd = yearRangeNode.InnerText.IndexOf(')');
 
+            if (yearRangeStart == -1 || yearRangeEnd == -1)
+                throw new ImdbHtmlChangedException($"Cannot find year range in page contents in '{yearRangeNode.InnerText}'. e.g. \"TV Series (2011–2019)\"");
+
             var yearRange = yearRangeNode.InnerText.Substring(yearRangeStart + 1, yearRangeEnd - yearRangeStart - 1);
+
+            if (!yearRange.Contains('–'))
+                throw new ImdbHtmlChangedException($"Cannot find year range delimiter '–' in page contents {yearRangeNode.InnerText}'. e.g. \"TV Series (2011–2019)\"");
 
             var years = yearRange.Split('–', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) // long dash (–) is used
                 .Select(s => int.Parse(s))
