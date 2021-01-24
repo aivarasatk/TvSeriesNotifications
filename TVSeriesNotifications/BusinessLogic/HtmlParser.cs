@@ -71,7 +71,7 @@ namespace TVSeriesNotifications.BusinessLogic
         {
             foreach (var dateText in airDatesText)
             {
-                if (DateTime.TryParseExact(dateText, "d MMM. yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                if (DateTime.TryParseExact(dateText, new[] { "d MMM. yyyy", "d MMM yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
                     yield return date;
             }
         }

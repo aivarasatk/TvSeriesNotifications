@@ -104,6 +104,56 @@ namespace TVSeriesNotifications.Tests
 			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series (2018)</a></div>"));
 		}
 
+		[Fact]
+		public void EpisodeAirDateParsesSuccessfullyForMonthMay() // May is not abrieviated like Sep. or Jun.
+		{
+			// Arrange & Act
+			var aired = HtmlParser.AnyEpisodeHasAired(SeasonAirDatesForMay);
+
+			// Assert
+			Assert.True(aired);
+		}
+
+		[Fact]
+		public void When_AirDates_AreInThePast_EpisodesHaveAired() // May is not abrieviated like Sep. or Jun.
+		{
+			// Arrange & Act
+			var aired = HtmlParser.AnyEpisodeHasAired(PastSeasonAirDates);
+
+			// Assert
+			Assert.True(aired);
+		}
+
+		[Fact]
+		public void When_AirDates_AreInTheFuture_EpisodesHaveNotAired() // May is not abrieviated like Sep. or Jun.
+		{
+			// Arrange & Act
+			var aired = HtmlParser.AnyEpisodeHasAired(FutureSeasonAirDates);
+
+			// Assert
+			Assert.False(aired);
+		}
+
+		[Fact]
+		public void When_AirDates_AreNotInHtml_Throws() // May is not abrieviated like Sep. or Jun.
+		{
+			// Arrange & Act & Assert
+			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.AnyEpisodeHasAired($"<div><a title=\"See more release dates\">TV Series (2018)</a></div>"));
+		}
+
+		[Theory]
+		[InlineData("")]
+		[InlineData("2020")]
+		[InlineData("2100")]
+		public void When_AirDates_AreNotValid_EpisodesAreConsideredNotAired(string airDate) // May is not abrieviated like Sep. or Jun.
+		{
+			// Arrange & Act
+			var aired = HtmlParser.AnyEpisodeHasAired($"<div class=\"airdate\">{airDate}</div>");
+
+			// Assert
+			Assert.False(aired);
+		}
+
 		private const string ValidHtmlWith8SeasonNodes =
 		@"<html>
 			<div></div>
@@ -166,6 +216,45 @@ namespace TVSeriesNotifications.Tests
 					</a> </div>
 			</div>
 		</<html>";
+
+		private const string SeasonAirDatesForMay =
+		@"
+		<div class=""info"" itemprop=""episodes"" >
+			<div class=""airdate"">
+				8 May 2020
+			</div>
+		</div>";
+
+		private const string PastSeasonAirDates =
+		@"
+		<div class=""info"" itemprop=""episodes"" >
+			<div class=""airdate"">
+				8 Mar. 2020
+			</div>
+			<div class=""airdate"">
+				8 Dec. 2020
+			</div>
+			<div class=""airdate"">
+				8 Oct. 2020
+			</div>
+		</div>";
+
+		private const string FutureSeasonAirDates =
+		@"
+		<div class=""info"" itemprop=""episodes"" >
+			<div class=""airdate"">
+				8 Mar. 2100
+			</div>
+			<div class=""airdate"">
+				21 Dec. 2100
+			</div>
+			<div class=""airdate"">
+				9 Oct. 2100
+			</div
+			<div class=""airdate"">
+				31 Jan. 2100
+			</div>
+		</div>";
 
 	}
 }

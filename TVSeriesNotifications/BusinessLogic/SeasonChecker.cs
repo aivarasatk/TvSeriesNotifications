@@ -93,8 +93,15 @@ namespace TVSeriesNotifications.BusinessLogic
 
         private async Task SetLatestAiredSeason(string searchValue, IEnumerable<HtmlNode> seasonNodes)
         {
-            var latestAiredSeason = await FindLatestAiredSeason(seasonNodes);
-            _cacheLatestAiredSeasons.Add(searchValue, latestAiredSeason);
+            try
+            {
+                var latestAiredSeason = await FindLatestAiredSeason(seasonNodes);
+                _cacheLatestAiredSeasons.Add(searchValue, latestAiredSeason);
+            }
+            catch (ImdbHtmlChangedException iex)
+            {
+                throw new ImdbHtmlChangedException($"TvShow: {searchValue}", iex);
+            }
         }
 
         private async Task<(bool success, string tvShowId)> TryGetTvShowId(string searchValue)

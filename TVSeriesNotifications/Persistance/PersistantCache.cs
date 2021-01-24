@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Caching;
 
 namespace TVSeriesNotifications.Persistance
@@ -10,7 +11,7 @@ namespace TVSeriesNotifications.Persistance
 
         public PersistantCache(string cacheLocation)
         {
-            _fileCache = new FileCache(cacheLocation);
+            _fileCache = new FileCache(Path.Combine(Directory.GetCurrentDirectory(), cacheLocation));
         }
 
         public void Add(string key, T value)
