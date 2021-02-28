@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -15,17 +14,20 @@ namespace TVSeriesNotifications.BusinessLogic
     public class SeasonChecker : ISeasonChecker
     {
         private readonly IImdbClient _client;
+        private readonly IHtmlParser _htmlParser;
         private readonly IPersistantCache<string> _cacheTvShowIds;
         private readonly IPersistantCache<string> _cacheIgnoredTvShows;
         private readonly IPersistantCache<int> _cacheLatestAiredSeasons;
 
         public SeasonChecker(
             IImdbClient client,
+            IHtmlParser htmlParser,
             IPersistantCache<string> cacheTvShowIds,
             IPersistantCache<string> cacheIgnoredTvShows,
             IPersistantCache<int> cacheLatestAiredSeasons)
         {
             _client = client;
+            _htmlParser = htmlParser;
             _cacheTvShowIds = cacheTvShowIds;
             _cacheIgnoredTvShows = cacheIgnoredTvShows;
             _cacheLatestAiredSeasons = cacheLatestAiredSeasons;
@@ -53,13 +55,13 @@ namespace TVSeriesNotifications.BusinessLogic
         {
             var tvShowPageContent = await _client.GetPageContentsAsync(tvShowId);
 
-            var seasonNodes = HtmlParser.SeasonNodes(tvShowPageContent).ToArray();
+            var seasonNodes = _htmlParser.SeasonNodes(tvShowPageContent).ToArray(); // by default ordered in desc
 
             if (_cacheLatestAiredSeasons.TryGet(tvShow, out int latestAiredSeason))
             {
                 var firstUpcomingSeason = seasonNodes.Where(s => IsUpcomingSeason(s, latestAiredSeason)).LastOrDefault();
 
-                if (firstUpcomingSeason is null && HtmlParser.ShowIsCancelled(tvShowPageContent))
+                if (firstUpcomingSeason is null && _htmlParser.ShowIsCancelled(tvShowPageContent))
                 {
                     MarkShowAsCancelled(tvShow);
                     return AsyncTryResponse<NewSeason>(false, null);
@@ -167,11 +169,18 @@ namespace TVSeriesNotifications.BusinessLogic
 
         private async Task<int> FindLatestAiredSeason(IEnumerable<HtmlNode> seasonLinks)
         {
-            foreach (var linkNode in seasonLinks)
+            var seasons = seasonLinks.Select(l => (season: int.Parse(l.InnerText), link: l.Attributes.Single(a => a.Name == "href").Value))
+                .OrderByDescending(o => o.season);
+
+            foreach (var (season, link) in seasons)
             {
-                var link = linkNode.Attributes.Single(a => a.Name == "href").Value;
                 if (await IsNewestAiredSeason(link))
-                    return int.Parse(linkNode.InnerText);
+                    return season;
+
+                // when season for a new tv show is not out yet we'd still like to subscribe to it's notifications
+                // in IMDB new tv show shows season 1 with upcoming air date or with no date
+                if (season is 1)
+                    return 0;
             }
 
             throw new ImdbHtmlChangedException("No latest aired season found");
@@ -183,7 +192,7 @@ namespace TVSeriesNotifications.BusinessLogic
 
             try
             {
-                return HtmlParser.AnyEpisodeHasAired(content);
+                return _htmlParser.AnyEpisodeHasAired(content);
             }
             catch (Exception ex)
             {

@@ -24,7 +24,7 @@ namespace TVSeriesNotifications
             var cacheTvShowIds = new PersistantCache<string>("Cache/TvShowIds");
             var cacheIgnoredTvShows = new PersistantCache<string>("Cache/IgnoredTvShows");
             var cacheLatestAiredSeasons = new PersistantCache<int>("Cache/LatestAiredSeasons");
-            _seasonChecker = new SeasonChecker(client, cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons);
+            _seasonChecker = new SeasonChecker(client, new HtmlParser(), cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons);
 
             _notificationService = new FileNotificationService();
             _tvShowRepository = new FileTvShowRepository(new FileSystem());
@@ -35,12 +35,12 @@ namespace TVSeriesNotifications
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                var tvShows = await _tvShowRepository.RetrieveTvShows().ConfigureAwait(false);
-                await CheckForNewSeasonsAsync(tvShows).ConfigureAwait(false);
+                var tvShows = await _tvShowRepository.RetrieveTvShows();
+                await CheckForNewSeasonsAsync(tvShows);
             }
             catch (ImdbHtmlChangedException ihce)
             {
-                _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed: {ihce.Message}");
+                _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed exception ({ihce.InnerException}): {ihce.Message}");
             }
             catch (Exception ex)
             {

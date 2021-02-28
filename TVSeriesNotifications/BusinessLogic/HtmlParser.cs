@@ -7,9 +7,9 @@ using TVSeriesNotifications.CustomExceptions;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
-    public static class HtmlParser
+    public class HtmlParser : IHtmlParser
     {
-        public static IEnumerable<HtmlNode> SeasonNodes(string tvShowPageContent)
+        public IEnumerable<HtmlNode> SeasonNodes(string tvShowPageContent)
         {
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
@@ -28,7 +28,7 @@ namespace TVSeriesNotifications.BusinessLogic
             return seasonNodes;
         }
 
-        public static bool ShowIsCancelled(string tvShowPageContent)
+        public bool ShowIsCancelled(string tvShowPageContent)
         {
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
@@ -55,7 +55,7 @@ namespace TVSeriesNotifications.BusinessLogic
             return years.Length == 2 && years[1] <= DateTime.Now.Year;
         }
 
-        public static bool AnyEpisodeHasAired(string pageContents)
+        public bool AnyEpisodeHasAired(string pageContents)
         {
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(pageContents);
