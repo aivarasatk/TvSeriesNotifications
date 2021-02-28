@@ -4,11 +4,19 @@ using System.Globalization;
 using System.Linq;
 using HtmlAgilityPack;
 using TVSeriesNotifications.CustomExceptions;
+using TVSeriesNotifications.DateTimeProvider;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
     public class HtmlParser : IHtmlParser
     {
+        private readonly IDateTimeProvider _dateTimeProvider;
+
+        public HtmlParser(IDateTimeProvider dateTimeProvider)
+        {
+            _dateTimeProvider = dateTimeProvider;
+        }
+
         public IEnumerable<HtmlNode> SeasonNodes(string tvShowPageContent)
         {
             var htmlDocument = new HtmlDocument();
@@ -52,7 +60,7 @@ namespace TVSeriesNotifications.BusinessLogic
                 .Select(s => int.Parse(s))
                 .ToArray();
 
-            return years.Length == 2 && years[1] <= DateTime.Now.Year;
+            return years.Length == 2 && years[1] <= _dateTimeProvider.Now.Year;
         }
 
         public bool AnyEpisodeHasAired(string pageContents)
@@ -64,7 +72,7 @@ namespace TVSeriesNotifications.BusinessLogic
             if (airDatesText is null || !airDatesText.Any())
                 throw new ImdbHtmlChangedException($"No air dates found");
 
-            return SeasonAirDates(airDatesText).OrderBy(d => d).FirstOrDefault(d => d <= DateTime.Now.Date) != default;
+            return SeasonAirDates(airDatesText).OrderBy(d => d).FirstOrDefault(d => d <= _dateTimeProvider.Now.Date) != default;
         }
 
         private static IEnumerable<DateTime> SeasonAirDates(IEnumerable<string> airDatesText)

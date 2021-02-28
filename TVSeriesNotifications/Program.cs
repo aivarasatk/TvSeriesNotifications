@@ -21,10 +21,12 @@ namespace TVSeriesNotifications
         static Program()
         {
             var client = new ImdbClient();
+            var dateTimeProvider = new DateTimeProvider.DateTimeProvider();
+            var htmlParser = new HtmlParser(dateTimeProvider);
             var cacheTvShowIds = new PersistantCache<string>("Cache/TvShowIds");
             var cacheIgnoredTvShows = new PersistantCache<string>("Cache/IgnoredTvShows");
             var cacheLatestAiredSeasons = new PersistantCache<int>("Cache/LatestAiredSeasons");
-            _seasonChecker = new SeasonChecker(client, new HtmlParser(), cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons);
+            _seasonChecker = new SeasonChecker(client, htmlParser, cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons, dateTimeProvider);
 
             _notificationService = new FileNotificationService();
             _tvShowRepository = new FileTvShowRepository(new FileSystem());

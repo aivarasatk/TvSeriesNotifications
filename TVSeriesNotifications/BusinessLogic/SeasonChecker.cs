@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.CustomExceptions;
+using TVSeriesNotifications.DateTimeProvider;
 using TVSeriesNotifications.DTO;
 using TVSeriesNotifications.JsonModels;
 using TVSeriesNotifications.Persistance;
@@ -18,19 +19,22 @@ namespace TVSeriesNotifications.BusinessLogic
         private readonly IPersistantCache<string> _cacheTvShowIds;
         private readonly IPersistantCache<string> _cacheIgnoredTvShows;
         private readonly IPersistantCache<int> _cacheLatestAiredSeasons;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         public SeasonChecker(
             IImdbClient client,
             IHtmlParser htmlParser,
             IPersistantCache<string> cacheTvShowIds,
             IPersistantCache<string> cacheIgnoredTvShows,
-            IPersistantCache<int> cacheLatestAiredSeasons)
+            IPersistantCache<int> cacheLatestAiredSeasons,
+            IDateTimeProvider dateTimeProvider)
         {
             _client = client;
             _htmlParser = htmlParser;
             _cacheTvShowIds = cacheTvShowIds;
             _cacheIgnoredTvShows = cacheIgnoredTvShows;
             _cacheLatestAiredSeasons = cacheLatestAiredSeasons;
+            _dateTimeProvider = dateTimeProvider;
         }
 
         /// <summary>
@@ -146,7 +150,7 @@ namespace TVSeriesNotifications.BusinessLogic
                 .ToArray();
 
             return tvShowSuggestion.Category != TVCategory.TVMiniSeries
-                && (tvShowSuggestion.YearRange.Last() == '-' || (yearRangeSplit.Length == 2 && yearRangeSplit[1] > DateTime.Now.Year));
+                && (tvShowSuggestion.YearRange.Last() == '-' || (yearRangeSplit.Length == 2 && yearRangeSplit[1] > _dateTimeProvider.Now.Year));
         }
 
         private async Task<(bool success, Suggestion suggestion)> TryGetTvShowSuggestionAsync(string searchValue)
