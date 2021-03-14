@@ -3,15 +3,22 @@ using TVSeriesNotifications.BusinessLogic;
 using TVSeriesNotifications.CustomExceptions;
 using Xunit;
 
-namespace TVSeriesNotifications.Tests
+namespace TVSeriesNotifications.Tests.BusinessLogic
 {
     public class HtmlParserTests
     {
+		private readonly IHtmlParser _parser;
+
+        public HtmlParserTests()
+        {
+			_parser = new HtmlParser(new DateTimeProvider.DateTimeProvider());
+		}
+
         [Fact]
         public void GivenValidHtml_SeasonNodesAreReturned()
         {
 			// Arrange & Act
-			var result = HtmlParser.SeasonNodes(ValidHtmlWith8SeasonNodes);
+			var result = _parser.SeasonNodes(ValidHtmlWith8SeasonNodes);
 
 			Assert.NotEmpty(result);
         }
@@ -23,7 +30,7 @@ namespace TVSeriesNotifications.Tests
 			var actualSeasons = new[] { "1", "2", "3", "4", "5", "6", "7", "8" };
 
 			// Act
-			var result = HtmlParser.SeasonNodes(ValidHtmlWith8SeasonNodes).ToList();
+			var result = _parser.SeasonNodes(ValidHtmlWith8SeasonNodes).ToList();
 
 			Assert.True(result.Count == 8);
 
@@ -35,7 +42,7 @@ namespace TVSeriesNotifications.Tests
 		public void GivenValidHtml_SeasonNodesHaveLinks()
 		{
 			// Arrange & Act
-			var result = HtmlParser.SeasonNodes(ValidHtmlWith8SeasonNodes).ToList();
+			var result = _parser.SeasonNodes(ValidHtmlWith8SeasonNodes).ToList();
 
 			//Assert
 			Assert.All(result,
@@ -48,21 +55,21 @@ namespace TVSeriesNotifications.Tests
 		public void GivenHtmlWithoutSeasonNode_SeasonNodesThrows()
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.SeasonNodes("<html></html>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.SeasonNodes("<html></html>"));
 		}
 
 		[Fact]
 		public void GivenHtmlWithoutLinksToSeason_SeasonNodesThrows()
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.SeasonNodes("<html><div class=\"seasons-and-year-nav\"></div></html>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.SeasonNodes("<html><div class=\"seasons-and-year-nav\"></div></html>"));
 		}
 
 		[Fact]
 		public void GivenValidShowEndedHtml_TvShowisCancelled()
 		{
 			// Arrange & Act
-			var cancelled = HtmlParser.ShowIsCancelled(ValidEndedTvShowHtml);
+			var cancelled = _parser.ShowIsCancelled(ValidEndedTvShowHtml);
 
 			//Assert
 			Assert.True(cancelled);
@@ -72,7 +79,7 @@ namespace TVSeriesNotifications.Tests
 		public void GivenInvalidShowEndedHtml_HtmlChangedExceptionThrown()
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.ShowIsCancelled("<div><a titile=\"See more\"></a></div>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.ShowIsCancelled("<div><a titile=\"See more\"></a></div>"));
 		}
 
 		[Theory]
@@ -82,7 +89,7 @@ namespace TVSeriesNotifications.Tests
 		public void GivenShowEndedHtmlWithMissingBraces_HtmlChangedExceptionThrown_DueToMissingYearRange(string yearRange)
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series {yearRange}</a></div>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series {yearRange}</a></div>"));
 		}
 
 		[Theory]
@@ -91,7 +98,7 @@ namespace TVSeriesNotifications.Tests
 		public void GivenValidOngoingShowHtml_ShowIsNotCancelled(string yearRange)
 		{
 			// Arrange & Act
-			var cancelled = HtmlParser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series {yearRange}</a></div>");
+			var cancelled = _parser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series {yearRange}</a></div>");
 
 			//Assert
 			Assert.False(cancelled);
@@ -101,14 +108,14 @@ namespace TVSeriesNotifications.Tests
 		public void ValidShowYearRangeRequiresADash()// long dash '–'
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series (2018)</a></div>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series (2018)</a></div>"));
 		}
 
 		[Fact]
 		public void EpisodeAirDateParsesSuccessfullyForMonthMay() // May is not abrieviated like Sep. or Jun.
 		{
 			// Arrange & Act
-			var aired = HtmlParser.AnyEpisodeHasAired(SeasonAirDatesForMay);
+			var aired = _parser.AnyEpisodeHasAired(SeasonAirDatesForMay);
 
 			// Assert
 			Assert.True(aired);
@@ -118,7 +125,7 @@ namespace TVSeriesNotifications.Tests
 		public void When_AirDates_AreInThePast_EpisodesHaveAired() // May is not abrieviated like Sep. or Jun.
 		{
 			// Arrange & Act
-			var aired = HtmlParser.AnyEpisodeHasAired(PastSeasonAirDates);
+			var aired = _parser.AnyEpisodeHasAired(PastSeasonAirDates);
 
 			// Assert
 			Assert.True(aired);
@@ -128,7 +135,7 @@ namespace TVSeriesNotifications.Tests
 		public void When_AirDates_AreInTheFuture_EpisodesHaveNotAired() // May is not abrieviated like Sep. or Jun.
 		{
 			// Arrange & Act
-			var aired = HtmlParser.AnyEpisodeHasAired(FutureSeasonAirDates);
+			var aired = _parser.AnyEpisodeHasAired(FutureSeasonAirDates);
 
 			// Assert
 			Assert.False(aired);
@@ -138,7 +145,7 @@ namespace TVSeriesNotifications.Tests
 		public void When_AirDates_AreNotInHtml_Throws() // May is not abrieviated like Sep. or Jun.
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => HtmlParser.AnyEpisodeHasAired($"<div><a title=\"See more release dates\">TV Series (2018)</a></div>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.AnyEpisodeHasAired($"<div><a title=\"See more release dates\">TV Series (2018)</a></div>"));
 		}
 
 		[Theory]
@@ -148,7 +155,7 @@ namespace TVSeriesNotifications.Tests
 		public void When_AirDates_AreNotValid_EpisodesAreConsideredNotAired(string airDate) // May is not abrieviated like Sep. or Jun.
 		{
 			// Arrange & Act
-			var aired = HtmlParser.AnyEpisodeHasAired($"<div class=\"airdate\">{airDate}</div>");
+			var aired = _parser.AnyEpisodeHasAired($"<div class=\"airdate\">{airDate}</div>");
 
 			// Assert
 			Assert.False(aired);
