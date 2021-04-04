@@ -87,7 +87,7 @@ namespace TVSeriesNotifications.BusinessLogic
             return AsyncTryResponse<NewSeason>(false, null);
         }
 
-        private async Task<bool> UpcomingSeasonAired(HtmlNode firstUpcomingSeason)
+        private async Task<bool> UpcomingSeasonAired(SeasonNode firstUpcomingSeason)
             => firstUpcomingSeason is not null && await IsNewestAiredSeason(firstUpcomingSeason.Attributes.Single(a => a.Name == "href").Value);
 
         private void MarkShowAsCancelled(string searchValue)
@@ -97,7 +97,7 @@ namespace TVSeriesNotifications.BusinessLogic
             _cacheLatestAiredSeasons.Remove(searchValue);
         }
 
-        private async Task SetLatestAiredSeason(string searchValue, IEnumerable<HtmlNode> seasonNodes)
+        private async Task SetLatestAiredSeason(string searchValue, IEnumerable<SeasonNode> seasonNodes)
         {
             try
             {
@@ -168,10 +168,10 @@ namespace TVSeriesNotifications.BusinessLogic
             return AsyncTryResponse(success: true, tvShow);
         }
 
-        private bool IsUpcomingSeason(HtmlNode arg, int latestAiredSeason)// there can be more than one confirmed seasons
+        private bool IsUpcomingSeason(SeasonNode arg, int latestAiredSeason) // there can be more than one confirmed seasons
             => int.Parse(arg.InnerText.Trim()) > latestAiredSeason;
 
-        private async Task<int> FindLatestAiredSeason(IEnumerable<HtmlNode> seasonLinks)
+        private async Task<int> FindLatestAiredSeason(IEnumerable<SeasonNode> seasonLinks)
         {
             var seasons = seasonLinks.Select(l => (season: int.Parse(l.InnerText), link: l.Attributes.Single(a => a.Name == "href").Value))
                 .OrderByDescending(o => o.season);
@@ -181,14 +181,15 @@ namespace TVSeriesNotifications.BusinessLogic
                 if (await IsNewestAiredSeason(link))
                     return season;
 
-                // when season for a new tv show is not out yet we'd still like to subscribe to it's notifications
-                // in IMDB new tv show shows season 1 with upcoming air date or with no date
-                if (season is 1)
-                    return 0;
+                // When season for a new tv show is not out yet we'd still like to subscribe to it's notifications.
+                if (TvShowToBeAired(season))
+                    return 0; // Design flaw. We need to have a numeric value for a latest aired season
             }
 
             throw new ImdbHtmlChangedException("No latest aired season found");
         }
+
+        private bool TvShowToBeAired(int season) => season is 1;
 
         private async Task<bool> IsNewestAiredSeason(string link)
         {

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HtmlAgilityPack;
+﻿using System.Collections.Generic;
+using TVSeriesNotifications.DTO;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
     public interface IHtmlParser
     {
-        IEnumerable<HtmlNode> SeasonNodes(string tvShowPageContent);
+        IEnumerable<SeasonNode> SeasonNodes(string tvShowPageContent);
 
         bool ShowIsCancelled(string tvShowPageContent);
 

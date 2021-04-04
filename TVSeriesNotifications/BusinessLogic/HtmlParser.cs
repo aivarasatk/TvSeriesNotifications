@@ -5,6 +5,7 @@ using System.Linq;
 using HtmlAgilityPack;
 using TVSeriesNotifications.CustomExceptions;
 using TVSeriesNotifications.DateTimeProvider;
+using TVSeriesNotifications.DTO;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
@@ -17,7 +18,7 @@ namespace TVSeriesNotifications.BusinessLogic
             _dateTimeProvider = dateTimeProvider;
         }
 
-        public IEnumerable<HtmlNode> SeasonNodes(string tvShowPageContent)
+        public IEnumerable<SeasonNode> SeasonNodes(string tvShowPageContent)
         {
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
@@ -33,7 +34,10 @@ namespace TVSeriesNotifications.BusinessLogic
             if (seasonNodes is null)
                 throw new ImdbHtmlChangedException("Cannot find season links while searching in season section");
 
-            return seasonNodes;
+            return seasonNodes.Select(n =>
+                new SeasonNode(
+                    n.InnerText,
+                    n.Attributes.Select(a => new DTO.HtmlAttribute(a.Name, a.Value))));
         }
 
         public bool ShowIsCancelled(string tvShowPageContent)
