@@ -7,6 +7,10 @@ namespace TVSeriesNotifications.Tests.Fakes.Persistance
     {
         public Dictionary<string, T> CacheItems { get; set; } = new Dictionary<string, T>();
 
+        public FakePersistantCache()
+        {
+        }
+
         public FakePersistantCache(Dictionary<string, T> defaultCacheItemList)
         {
             CacheItems = new Dictionary<string, T>(defaultCacheItemList);

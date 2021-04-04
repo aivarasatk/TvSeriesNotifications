@@ -23,3 +23,9 @@ dotnet_diagnostic.SA1027.severity = none
 
 # SA1137: Elements should have the same indentation
 dotnet_diagnostic.SA1137.severity = none
+
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = none
+
+# SA1413: Use trailing comma in multi-line initializers
+dotnet_diagnostic.SA1413.severity = none

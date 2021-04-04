@@ -10,6 +10,15 @@ namespace TVSeriesNotifications.JsonModels
     [DataContract]
     public class Suggestion
     {
+        public Suggestion(string category, string id, string title, int yearStart, string yearRange)
+        {
+            _category = category;
+            Id = id;
+            Title = title;
+            YearStart = yearStart;
+            YearRange = yearRange;
+        }
+
         [Required]
         [DataMember(Name = "id")]
         public string Id { get; init; }

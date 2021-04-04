@@ -10,8 +10,9 @@ namespace TVSeriesNotifications.BusinessLogic
     public interface IHtmlParser
     {
         IEnumerable<HtmlNode> SeasonNodes(string tvShowPageContent);
-        bool ShowIsCancelled(string tvShowPageContent);
-        bool AnyEpisodeHasAired(string pageContents);
 
+        bool ShowIsCancelled(string tvShowPageContent);
+
+        bool AnyEpisodeHasAired(string pageContents);
     }
 }
