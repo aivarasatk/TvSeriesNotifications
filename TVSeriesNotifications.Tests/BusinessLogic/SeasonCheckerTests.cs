@@ -2,9 +2,13 @@
 using System;
 using System.Threading.Tasks;
 using TVSeriesNotifications.Api;
+using TVSeriesNotifications.BusinessLogic;
+using TVSeriesNotifications.CustomExceptions;
 using TVSeriesNotifications.DateTimeProvider;
+using TVSeriesNotifications.DTO;
 using TVSeriesNotifications.Persistance;
 using TVSeriesNotifications.Tests.BusinessLogic.Builders;
+using TVSeriesNotifications.Tests.Fakes.Persistance;
 using Xunit;
 
 namespace TVSeriesNotifications.Tests.BusinessLogic
@@ -86,6 +90,154 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             // Assert
             Assert.False(success);
             Assert.NotEmpty(ignoredTvShowsCache.CacheItems);
+        }
+
+        [Fact]
+        public async Task When_TvShowIsToBeAired_ItIsAddedToSubscriptionList()
+        {
+            // Arrange
+            var newTvShow = "New Tv Show";
+
+            var imdbClient = new Mock<IImdbClient>();
+            imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
+                {
+                    Suggestions = new JsonModels.Suggestion[]
+                    {
+                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2023, yearRange: "2023-")
+                    }
+                }));
+
+            var dateTimeProvider = new Mock<IDateTimeProvider>();
+            dateTimeProvider.Setup(m => m.Now).Returns(new DateTime(2022, 1, 1)); // Stubbed suggestion is now "to be aired"
+
+            var htmlParser = new Mock<IHtmlParser>();
+            htmlParser.Setup(h => h.SeasonNodes(It.IsAny<string>()))
+                .Returns(new SeasonNode[]
+                {
+                    new (InnerText: "1", new HtmlAttribute[] { new ("href", "linkValue") })
+                });
+
+            var latestAiredSeason = new Fakes.Persistance.FakePersistantCache<int>();
+
+            var sut = new SeasonCheckerBuilder()
+                .WithCacheLatestAiredSeasons(latestAiredSeason)
+                .WithImdbClient(imdbClient.Object)
+                .WithHtmlParser(htmlParser.Object)
+                .WithDateTimeProvider(dateTimeProvider.Object)
+                .Build();
+
+            // Act
+            var (success, newSeason) = await sut.TryCheckForNewSeasonAsync(newTvShow);
+
+            // Assert
+            Assert.False(success); // upcoming tv show is treated as a new ongoing tv show. Meaning we now have "latest" aired season
+            Assert.True(latestAiredSeason.CacheItems.ContainsKey(newTvShow));
+        }
+
+        [Fact]
+        public async Task When_AnOngoingTvShowIsFirstChecked_LatestAiredSeasonIsSet()
+        {
+            // Arrange
+            var newTvShow = "The Blacklist";
+
+            var imdbClient = new Mock<IImdbClient>();
+            imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
+                {
+                    Suggestions = new JsonModels.Suggestion[]
+                    {
+                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2020, yearRange: "2020-")
+                    }
+                }));
+
+            var htmlParser = new Mock<IHtmlParser>();
+            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
+                .Returns(new SeasonNode[]
+                {
+                    new ("1", new HtmlAttribute[] { new ("href", "link") }),
+                    new ("2", new HtmlAttribute[] { new ("href", "link") })
+                });
+
+            htmlParser.Setup(p => p.AnyEpisodeHasAired(It.IsAny<string>()))
+                .Returns(true);
+
+            var latestAiredTvShowCache = new FakePersistantCache<int>();
+
+            var sut = new SeasonCheckerBuilder()
+                .WithImdbClient(imdbClient.Object)
+                .WithHtmlParser(htmlParser.Object)
+                .WithCacheLatestAiredSeasons(latestAiredTvShowCache)
+                .Build();
+
+            // Act
+            var (success, newSeason) = await sut.TryCheckForNewSeasonAsync(newTvShow);
+
+            // Assert
+            Assert.True(latestAiredTvShowCache.Exists(newTvShow));
+        }
+
+        [Fact]
+        public async Task When_NoSeasonNodesAreReturnedForANewShow_HtmlChangedExceptionThrows()
+        {
+            // Arrange
+            var newTvShow = "The Blacklist";
+
+            var imdbClient = new Mock<IImdbClient>();
+            imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
+                {
+                    Suggestions = new JsonModels.Suggestion[]
+                    {
+                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2020, yearRange: "2020-")
+                    }
+                }));
+
+            var latestAiredTvShowCache = new FakePersistantCache<int>();
+
+            var sut = new SeasonCheckerBuilder()
+                .WithImdbClient(imdbClient.Object)
+                .WithCacheLatestAiredSeasons(latestAiredTvShowCache)
+                .Build();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ImdbHtmlChangedException>(() => sut.TryCheckForNewSeasonAsync(newTvShow));
+        }
+
+        [Fact]
+        public async Task When_TvShowHasNoUpcomingOrAiredSeason_HtmlChangedExceptionThrows()
+        {
+            // Arrange
+            var newTvShow = "The Blacklist";
+
+            var imdbClient = new Mock<IImdbClient>();
+            imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
+                {
+                    Suggestions = new JsonModels.Suggestion[]
+                    {
+                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2020, yearRange: "2020-")
+                    }
+                }));
+
+            var latestAiredTvShowCache = new FakePersistantCache<int>();
+
+            var htmlParser = new Mock<IHtmlParser>();
+            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
+                .Returns(new SeasonNode[]
+                {
+                    new ("1", new HtmlAttribute[] { new ("href", "link") }),
+                    new ("2", new HtmlAttribute[] { new ("href", "link") })
+                });
+
+            var sut = new SeasonCheckerBuilder()
+                .WithImdbClient(imdbClient.Object)
+                .WithHtmlParser(htmlParser.Object)
+                .WithCacheLatestAiredSeasons(latestAiredTvShowCache)
+                .Build();
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ImdbHtmlChangedException>(() => sut.TryCheckForNewSeasonAsync(newTvShow));
         }
     }
 }

@@ -174,7 +174,8 @@ namespace TVSeriesNotifications.BusinessLogic
         private async Task<int> FindLatestAiredSeason(IEnumerable<SeasonNode> seasonLinks)
         {
             var seasons = seasonLinks.Select(l => (season: int.Parse(l.InnerText), link: l.Attributes.Single(a => a.Name == "href").Value))
-                .OrderByDescending(o => o.season);
+                .OrderByDescending(o => o.season)
+                .ToArray();
 
             foreach (var (season, link) in seasons)
             {
@@ -182,14 +183,14 @@ namespace TVSeriesNotifications.BusinessLogic
                     return season;
 
                 // When season for a new tv show is not out yet we'd still like to subscribe to it's notifications.
-                if (TvShowToBeAired(season))
+                if (TvShowToBeAired(season, seasons.Length))
                     return 0; // Design flaw. We need to have a numeric value for a latest aired season
             }
 
             throw new ImdbHtmlChangedException("No latest aired season found");
         }
 
-        private bool TvShowToBeAired(int season) => season is 1;
+        private bool TvShowToBeAired(int season, int seasonCount) => season is 1 && seasonCount is 1;
 
         private async Task<bool> IsNewestAiredSeason(string link)
         {
