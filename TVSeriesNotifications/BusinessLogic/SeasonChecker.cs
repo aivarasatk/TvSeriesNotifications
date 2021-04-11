@@ -59,7 +59,9 @@ namespace TVSeriesNotifications.BusinessLogic
         {
             var tvShowPageContent = await _client.GetPageContentsAsync(tvShowId);
 
-            var seasonNodes = _htmlParser.SeasonNodes(tvShowPageContent).ToArray(); // by default ordered in desc
+            var seasonNodes = _htmlParser.SeasonNodes(tvShowPageContent)
+                .OrderByDescending(n => int.Parse(n.InnerText))
+                .ToArray();
 
             if (_cacheLatestAiredSeasons.TryGet(tvShow, out int latestAiredSeason))
             {

@@ -1,5 +1,7 @@
 ﻿using Moq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
@@ -238,6 +240,119 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
             // Act & Assert
             await Assert.ThrowsAsync<ImdbHtmlChangedException>(() => sut.TryCheckForNewSeasonAsync(newTvShow));
+        }
+
+        [Fact]
+        public async Task When_TvShowIsCancelled_ShowIsSetAsIgnored()
+        {
+            // Arrange
+            var tvShow = "The Blacklist";
+
+            var tvShowIdCache = new FakePersistantCache<string>(
+                new Dictionary<string, string> { [tvShow] = "some id" });
+
+            var latestAiredSeasonCache = new FakePersistantCache<int>(
+                new Dictionary<string, int> { [tvShow] = 3 });
+
+            var ignoredTvShowCache = new FakePersistantCache<string>();
+
+            var htmlParser = new Mock<IHtmlParser>();
+
+            // Setup with no new season.
+            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
+                .Returns(new SeasonNode[] { new ("3", Enumerable.Empty<HtmlAttribute>()) });
+
+            htmlParser.Setup(p => p.ShowIsCancelled(It.IsAny<string>()))
+                .Returns(true);
+
+            var sut = new SeasonCheckerBuilder()
+                .WithCacheTvShowIds(tvShowIdCache)
+                .WithCacheLatestAiredSeasons(latestAiredSeasonCache)
+                .WithCacheIgnoredTvShows(ignoredTvShowCache)
+                .WithHtmlParser(htmlParser.Object)
+                .Build();
+
+            // Act & Assert
+            var (newSeasonAired, seasonInfo) = await sut.TryCheckForNewSeasonAsync(tvShow);
+
+            Assert.False(newSeasonAired);
+
+            Assert.True(ignoredTvShowCache.CacheItems.ContainsKey(tvShow));
+            Assert.False(latestAiredSeasonCache.CacheItems.ContainsKey(tvShow));
+            Assert.False(tvShowIdCache.CacheItems.ContainsKey(tvShow));
+        }
+
+        [Fact]
+        public async Task When_TvShowHasANewAiredSeason_ShowCacheIsUpdatedWithTheValue()
+        {
+            // Arrange
+            var tvShow = "The Blacklist";
+
+            var tvShowIdCache = new FakePersistantCache<string>(
+                new Dictionary<string, string> { [tvShow] = "some id" });
+
+            var latestAiredSeasonCache = new FakePersistantCache<int>(
+                new Dictionary<string, int> { [tvShow] = 3 });
+
+            var htmlParser = new Mock<IHtmlParser>();
+
+            // Setup with new season.
+            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
+                .Returns(new SeasonNode[] { new ("4", new HtmlAttribute[] { new ("href", "linkValue") }) });
+
+            htmlParser.Setup(p => p.AnyEpisodeHasAired(It.IsAny<string>()))
+                .Returns(true);
+
+            var sut = new SeasonCheckerBuilder()
+                .WithCacheTvShowIds(tvShowIdCache)
+                .WithCacheLatestAiredSeasons(latestAiredSeasonCache)
+                .WithHtmlParser(htmlParser.Object)
+                .Build();
+
+            // Act & Assert
+            var (newSeasonAired, seasonInfo) = await sut.TryCheckForNewSeasonAsync(tvShow);
+
+            Assert.True(newSeasonAired);
+            Assert.Equal(4, latestAiredSeasonCache.CacheItems[tvShow]);
+        }
+
+        [Fact]
+        public async Task When_TvShowHasNoNewAiredSeason_CacheStateIsNotChanged()
+        {
+            // Arrange
+            var tvShow = "The Blacklist";
+
+            var tvShowIdCache = new FakePersistantCache<string>(
+                new Dictionary<string, string> { [tvShow] = "some id" });
+
+            var latestAiredSeasonCache = new FakePersistantCache<int>(
+                new Dictionary<string, int> { [tvShow] = 3 });
+
+            var ignoredTvShowCache = new FakePersistantCache<string>();
+
+            var htmlParser = new Mock<IHtmlParser>();
+
+            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
+                .Returns(new SeasonNode[] { new ("3", new HtmlAttribute[] { new ("href", "linkValue") }) });
+
+            htmlParser.Setup(p => p.ShowIsCancelled(It.IsAny<string>()))
+                .Returns(false);
+
+            var sut = new SeasonCheckerBuilder()
+                .WithCacheTvShowIds(tvShowIdCache)
+                .WithCacheLatestAiredSeasons(latestAiredSeasonCache)
+                .WithCacheIgnoredTvShows(ignoredTvShowCache)
+                .WithHtmlParser(htmlParser.Object)
+                .Build();
+
+            // Act & Assert
+            var (newSeasonAired, seasonInfo) = await sut.TryCheckForNewSeasonAsync(tvShow);
+
+            Assert.False(newSeasonAired);
+
+            Assert.True(tvShowIdCache.CacheItems.ContainsKey(tvShow));
+            Assert.Equal(3, latestAiredSeasonCache.CacheItems[tvShow]);
+            Assert.False(ignoredTvShowCache.CacheItems.ContainsKey(tvShow));
         }
     }
 }
