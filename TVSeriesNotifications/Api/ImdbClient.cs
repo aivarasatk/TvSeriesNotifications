@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TVSeriesNotifications.JsonModels;
 
 namespace TVSeriesNotifications.Api
 {
-    public class ImdbClient : IImdbClient
+    public class ImdbClient : IImdbClient, IDisposable
     {
         private const string BaseSuggestionUrl = "https://v2.sg.media-imdb.com/suggestion";
         private const string BaseImdbUrl = "https://www.imdb.com";
@@ -28,10 +25,14 @@ namespace TVSeriesNotifications.Api
             return await GetRequestAsync(Path.Combine(BaseTitleSearch, tvShowId) + "/");
         }
 
-        public async Task<string> GetSeasonPageContentsAsync(string link)
+        public async Task<string> GetSeasonPageContentsAsync(string tvShowId, int season)
         {
-            return await GetRequestAsync($"{BaseImdbUrl}{link}");
+            var link = BuildTvShowSeasonLink(tvShowId, season);
+            return await GetRequestAsync($"{BaseImdbUrl}/{link}"); // Using Path.Combine provides a link that gives
         }
+
+        private static string BuildTvShowSeasonLink(string tvShowId, int season)
+            => $"title/{tvShowId}/episodes?season={season}&ref_=tt_eps_sn_{season}";
 
         public async Task<ImdbSuggestion> GetSuggestionsAsync(string searchValue)
         {
@@ -51,6 +52,11 @@ namespace TVSeriesNotifications.Api
         {
             var content = await GetRequestAsync(url);
             return JsonConvert.DeserializeObject<T>(content);
+        }
+
+        public void Dispose()
+        {
+            _httpClient.Dispose();
         }
     }
 }

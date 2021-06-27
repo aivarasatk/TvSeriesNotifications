@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HtmlAgilityPack;
 using TVSeriesNotifications.CustomExceptions;
 using TVSeriesNotifications.DateTimeProvider;
-using TVSeriesNotifications.DTO;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
-    public class HtmlParser : IHtmlParser
+    public class HtmlParserV1 : HtmlParserBase, IHtmlParser
     {
         private readonly IDateTimeProvider _dateTimeProvider;
 
-        public HtmlParser(IDateTimeProvider dateTimeProvider)
+        public HtmlParserV1(IDateTimeProvider dateTimeProvider)
+            : base(dateTimeProvider)
         {
             _dateTimeProvider = dateTimeProvider;
         }
 
-        public IEnumerable<SeasonNode> SeasonNodes(string tvShowPageContent)
+        public bool AnyEpisodeHasAired(string pageContents) => base.AnyEpisodeHasAired(pageContents);
+
+        public IEnumerable<int> Seasons(string tvShowPageContent)
         {
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
@@ -34,10 +35,7 @@ namespace TVSeriesNotifications.BusinessLogic
             if (seasonNodes is null)
                 throw new ImdbHtmlChangedException("Cannot find season links while searching in season section");
 
-            return seasonNodes.Select(n =>
-                new SeasonNode(
-                    n.InnerText,
-                    n.Attributes.Select(a => new DTO.HtmlAttribute(a.Name, a.Value))));
+            return seasonNodes.Select(node => int.Parse(node.InnerText));
         }
 
         public bool ShowIsCancelled(string tvShowPageContent)
@@ -66,31 +64,5 @@ namespace TVSeriesNotifications.BusinessLogic
 
             return years.Length == 2 && years[1] <= _dateTimeProvider.Now.Year;
         }
-
-        public bool AnyEpisodeHasAired(string pageContents)
-        {
-            var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(pageContents);
-
-            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//div[@class='airdate']")?.Select(n => n.InnerText.Trim());
-            if (airDatesText is null || !airDatesText.Any())
-                throw new ImdbHtmlChangedException($"No air dates found");
-
-            return SeasonAirDates(airDatesText).OrderBy(d => d).FirstOrDefault(d => d <= _dateTimeProvider.Now.Date) != default;
-        }
-
-        private static IEnumerable<DateTime> SeasonAirDates(IEnumerable<string> airDatesText)
-        {
-            foreach (var dateText in airDatesText)
-            {
-                if (DateTime.TryParseExact(dateText, new[] { "d MMM. yyyy", "d MMM yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-                    yield return date;
-            }
-        }
-
-        private static bool IsSeasonLink(HtmlNode node) =>
-            node.Attributes.Any(a => a.Name == "href" && a.Value.Contains("season") && !a.Value.Contains("-1"))
-            && !node.InnerText.ToLower().Equals("unknown")
-            && !node.InnerText.ToLower().Contains("see all");
     }
 }

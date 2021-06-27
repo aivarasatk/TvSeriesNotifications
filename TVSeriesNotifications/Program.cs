@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SafeParallel;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
+using TVSeriesNotifications.Common;
 using TVSeriesNotifications.CustomExceptions;
 using TVSeriesNotifications.Notifications;
 using TVSeriesNotifications.Persistance;
@@ -22,11 +23,11 @@ namespace TVSeriesNotifications
         {
             var client = new ImdbClient();
             var dateTimeProvider = new DateTimeProvider.DateTimeProvider();
-            var htmlParser = new HtmlParser(dateTimeProvider);
+            var htmlParserStrategy = new HtmlParserStrategyFactory();
             var cacheTvShowIds = new PersistantCache<string>("Cache/TvShowIds");
             var cacheIgnoredTvShows = new PersistantCache<string>("Cache/IgnoredTvShows");
             var cacheLatestAiredSeasons = new PersistantCache<int>("Cache/LatestAiredSeasons");
-            _seasonChecker = new SeasonChecker(client, htmlParser, cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons, dateTimeProvider);
+            _seasonChecker = new SeasonChecker(client, htmlParserStrategy, cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons, dateTimeProvider);
 
             _notificationService = new FileNotificationService();
             _tvShowRepository = new FileTvShowRepository(new FileSystem());
@@ -50,7 +51,6 @@ namespace TVSeriesNotifications
             }
 
             Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
-            Console.ReadKey();
         }
 
         private static async Task CheckForNewSeasonsAsync(IEnumerable<string> tvShows)
@@ -62,7 +62,7 @@ namespace TVSeriesNotifications
                 {
                     _notificationService.NotifyNewSeason(newSeason);
                 }
-            }).ConfigureAwait(false);
+            });
         }
     }
 }

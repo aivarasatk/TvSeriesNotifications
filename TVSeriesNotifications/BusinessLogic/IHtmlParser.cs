@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
-using TVSeriesNotifications.DTO;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
     public interface IHtmlParser
     {
-        IEnumerable<SeasonNode> SeasonNodes(string tvShowPageContent);
+        IEnumerable<int> Seasons(string tvShowPageContent);
 
         bool ShowIsCancelled(string tvShowPageContent);
 
