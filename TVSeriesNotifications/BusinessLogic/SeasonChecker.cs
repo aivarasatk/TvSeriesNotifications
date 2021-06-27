@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
 using TVSeriesNotifications.Api;
+using TVSeriesNotifications.Common;
 using TVSeriesNotifications.CustomExceptions;
 using TVSeriesNotifications.DateTimeProvider;
 using TVSeriesNotifications.DTO;
@@ -14,8 +14,11 @@ namespace TVSeriesNotifications.BusinessLogic
 {
     public class SeasonChecker : ISeasonChecker
     {
+        private Dictionary<string, IHtmlParser> _htmlParsingStrategies = new();
+        private object _parsingStrategyLock = new();
+
         private readonly IImdbClient _client;
-        private readonly IHtmlParser _htmlParser;
+        private readonly IHtmlParserStrategyFactory _htmlParserStrategyFactory;
         private readonly IPersistantCache<string> _cacheTvShowIds;
         private readonly IPersistantCache<string> _cacheIgnoredTvShows;
         private readonly IPersistantCache<int> _cacheLatestAiredSeasons;
@@ -23,14 +26,14 @@ namespace TVSeriesNotifications.BusinessLogic
 
         public SeasonChecker(
             IImdbClient client,
-            IHtmlParser htmlParser,
+            IHtmlParserStrategyFactory htmlParserStrategyFactory,
             IPersistantCache<string> cacheTvShowIds,
             IPersistantCache<string> cacheIgnoredTvShows,
             IPersistantCache<int> cacheLatestAiredSeasons,
             IDateTimeProvider dateTimeProvider)
         {
             _client = client;
-            _htmlParser = htmlParser;
+            _htmlParserStrategyFactory = htmlParserStrategyFactory;
             _cacheTvShowIds = cacheTvShowIds;
             _cacheIgnoredTvShows = cacheIgnoredTvShows;
             _cacheLatestAiredSeasons = cacheLatestAiredSeasons;
@@ -59,57 +62,51 @@ namespace TVSeriesNotifications.BusinessLogic
         {
             var tvShowPageContent = await _client.GetPageContentsAsync(tvShowId);
 
-            var seasonNodes = _htmlParser.SeasonNodes(tvShowPageContent)
-                .OrderByDescending(n => int.Parse(n.InnerText))
+            var parser = _htmlParserStrategyFactory.ResolveParsingStrategy(tvShowPageContent);
+
+            lock (_parsingStrategyLock)
+            {
+                _htmlParsingStrategies.TryAdd(tvShowId, parser);
+            }
+
+            var seasonNodes = _htmlParsingStrategies[tvShowId].Seasons(tvShowPageContent)
+                .OrderByDescending(season => season)
                 .ToArray();
 
             if (_cacheLatestAiredSeasons.TryGet(tvShow, out int latestAiredSeason))
             {
                 var firstUpcomingSeason = seasonNodes.Where(s => IsUpcomingSeason(s, latestAiredSeason)).LastOrDefault();
 
-                if (firstUpcomingSeason is null && _htmlParser.ShowIsCancelled(tvShowPageContent))
+                if (firstUpcomingSeason is 0 && _htmlParsingStrategies[tvShowId].ShowIsCancelled(tvShowPageContent))
                 {
                     MarkShowAsCancelled(tvShow);
                     return AsyncTryResponse<NewSeason>(false, null);
                 }
 
-                if (await UpcomingSeasonAired(firstUpcomingSeason))
+                if (await UpcomingSeasonAired(tvShowId, firstUpcomingSeason))
                 {
-                    var season = int.Parse(firstUpcomingSeason.InnerText);
-                    _cacheLatestAiredSeasons.Update(tvShow, season);
+                    _cacheLatestAiredSeasons.Update(tvShow, firstUpcomingSeason);
 
-                    return AsyncTryResponse(true, new NewSeason(tvShow, season));
+                    return AsyncTryResponse(true, new NewSeason(tvShow, firstUpcomingSeason));
                 }
             }
             else
             {
-                await SetLatestAiredSeason(tvShow, seasonNodes).ConfigureAwait(false);
+                var airedSeason = await FindLatestAiredSeason(tvShowId, seasonNodes);
+                _cacheLatestAiredSeasons.Add(tvShow, airedSeason);
             }
 
             return AsyncTryResponse<NewSeason>(false, null);
         }
 
-        private async Task<bool> UpcomingSeasonAired(SeasonNode firstUpcomingSeason)
-            => firstUpcomingSeason is not null && await IsNewestAiredSeason(firstUpcomingSeason.Attributes.Single(a => a.Name == "href").Value);
+        private async Task<bool> UpcomingSeasonAired(string tvShowId, int firstUpcomingSeason)
+            => firstUpcomingSeason is not 0 && await IsNewestAiredSeason(tvShowId, firstUpcomingSeason);
 
         private void MarkShowAsCancelled(string searchValue)
         {
             _cacheIgnoredTvShows.Add(searchValue, string.Empty);
             _cacheTvShowIds.Remove(searchValue);
             _cacheLatestAiredSeasons.Remove(searchValue);
-        }
-
-        private async Task SetLatestAiredSeason(string searchValue, IEnumerable<SeasonNode> seasonNodes)
-        {
-            try
-            {
-                var latestAiredSeason = await FindLatestAiredSeason(seasonNodes);
-                _cacheLatestAiredSeasons.Add(searchValue, latestAiredSeason);
-            }
-            catch (ImdbHtmlChangedException iex)
-            {
-                throw new ImdbHtmlChangedException($"TvShow: {searchValue}", iex);
-            }
         }
 
         private async Task<(bool success, string tvShowId)> TryGetTvShowId(string searchValue)
@@ -170,22 +167,18 @@ namespace TVSeriesNotifications.BusinessLogic
             return AsyncTryResponse(success: true, tvShow);
         }
 
-        private bool IsUpcomingSeason(SeasonNode arg, int latestAiredSeason) // there can be more than one confirmed seasons
-            => int.Parse(arg.InnerText.Trim()) > latestAiredSeason;
+        private bool IsUpcomingSeason(int currentSeason, int latestAiredSeason) // there can be more than one confirmed seasons
+            => currentSeason > latestAiredSeason;
 
-        private async Task<int> FindLatestAiredSeason(IEnumerable<SeasonNode> seasonLinks)
+        private async Task<int> FindLatestAiredSeason(string tvShowId, ICollection<int> seasons)
         {
-            var seasons = seasonLinks.Select(l => (season: int.Parse(l.InnerText), link: l.Attributes.Single(a => a.Name == "href").Value))
-                .OrderByDescending(o => o.season)
-                .ToArray();
-
-            foreach (var (season, link) in seasons)
+            foreach (var season in seasons)
             {
-                if (await IsNewestAiredSeason(link))
+                if (await IsNewestAiredSeason(tvShowId, season))
                     return season;
 
                 // When season for a new tv show is not out yet we'd still like to subscribe to it's notifications.
-                if (TvShowToBeAired(season, seasons.Length))
+                if (TvShowToBeAired(season, seasons.Count))
                     return 0; // Design flaw. We need to have a numeric value for a latest aired season
             }
 
@@ -194,17 +187,16 @@ namespace TVSeriesNotifications.BusinessLogic
 
         private bool TvShowToBeAired(int season, int seasonCount) => season is 1 && seasonCount is 1;
 
-        private async Task<bool> IsNewestAiredSeason(string link)
+        private async Task<bool> IsNewestAiredSeason(string tvShowId, int season)
         {
-            var content = await _client.GetSeasonPageContentsAsync(link);
-
             try
             {
-                return _htmlParser.AnyEpisodeHasAired(content);
+                var content = await _client.GetSeasonPageContentsAsync(tvShowId, season);
+                return _htmlParsingStrategies[tvShowId].AnyEpisodeHasAired(content);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error during air date search for link {link}", ex);
+                throw new Exception($"Error during air date search for {tvShowId} season {season}", ex);
             }
         }
     }

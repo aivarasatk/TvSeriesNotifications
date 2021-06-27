@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using TVSeriesNotifications.JsonModels;
 
 namespace TVSeriesNotifications.Api
@@ -13,6 +9,6 @@ namespace TVSeriesNotifications.Api
 
         Task<ImdbSuggestion> GetSuggestionsAsync(string searchValue);
 
-        Task<string> GetSeasonPageContentsAsync(string link);
+        Task<string> GetSeasonPageContentsAsync(string tvShowId, int season);
     }
 }
