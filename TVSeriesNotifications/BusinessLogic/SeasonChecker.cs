@@ -49,7 +49,7 @@ namespace TVSeriesNotifications.BusinessLogic
         /// <exception cref="Exception">All other general expections.</exception>
         public async Task<(bool newSeasonAired, NewSeason seasonInfo)> TryCheckForNewSeasonAsync(string tvShow)
         {
-            var (success, tvShowId) = await TryGetTvShowId(tvShow).ConfigureAwait(false);
+            var (success, tvShowId) = await TryGetTvShowId(tvShow);
             if (!success)
                 return AsyncTryResponse<NewSeason>(false, null);
 #if DEBUG

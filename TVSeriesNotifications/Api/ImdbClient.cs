@@ -39,7 +39,7 @@ namespace TVSeriesNotifications.Api
             var urlReadySearchValue = $"{searchValue.Replace(' ', '_')}.json";
             var index = searchValue.Substring(0, 1).ToLower();
 
-            return await GetRequestAsync<ImdbSuggestion>(Path.Combine(BaseSuggestionUrl, index, urlReadySearchValue));
+            return await GetRequestAsync<ImdbSuggestion>($"{BaseSuggestionUrl}/{index}/{urlReadySearchValue}");
         }
 
         private async Task<string> GetRequestAsync(string url)
