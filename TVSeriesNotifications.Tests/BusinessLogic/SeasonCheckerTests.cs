@@ -114,10 +114,10 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             dateTimeProvider.Setup(m => m.Now).Returns(new DateTime(2022, 1, 1)); // Stubbed suggestion is now "to be aired"
 
             var htmlParser = new Mock<IHtmlParser>();
-            htmlParser.Setup(h => h.SeasonNodes(It.IsAny<string>()))
-                .Returns(new SeasonNode[]
+            htmlParser.Setup(h => h.Seasons(It.IsAny<string>()))
+                .Returns(new[]
                 {
-                    new (InnerText: "1", new HtmlAttribute[] { new ("href", "linkValue") })
+                    1
                 });
 
             var latestAiredSeason = new Fakes.Persistance.FakePersistantCache<int>();
@@ -154,11 +154,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                 }));
 
             var htmlParser = new Mock<IHtmlParser>();
-            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
-                .Returns(new SeasonNode[]
+            htmlParser.Setup(p => p.Seasons(It.IsAny<string>()))
+                .Returns(new[]
                 {
-                    new ("1", new HtmlAttribute[] { new ("href", "link") }),
-                    new ("2", new HtmlAttribute[] { new ("href", "link") })
+                    1,
+                    2
                 });
 
             htmlParser.Setup(p => p.AnyEpisodeHasAired(It.IsAny<string>()))
@@ -180,7 +180,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         }
 
         [Fact]
-        public async Task When_NoSeasonNodesAreReturnedForANewShow_HtmlChangedExceptionThrows()
+        public async Task When_NoSeasonsAreReturnedForANewShow_HtmlChangedExceptionThrows()
         {
             // Arrange
             var newTvShow = "The Blacklist";
@@ -225,11 +225,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             var latestAiredTvShowCache = new FakePersistantCache<int>();
 
             var htmlParser = new Mock<IHtmlParser>();
-            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
-                .Returns(new SeasonNode[]
+            htmlParser.Setup(p => p.Seasons(It.IsAny<string>()))
+                .Returns(new[]
                 {
-                    new ("1", new HtmlAttribute[] { new ("href", "link") }),
-                    new ("2", new HtmlAttribute[] { new ("href", "link") })
+                    1,
+                    2
                 });
 
             var sut = new SeasonCheckerBuilder()
@@ -259,8 +259,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             var htmlParser = new Mock<IHtmlParser>();
 
             // Setup with no new season.
-            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
-                .Returns(new SeasonNode[] { new ("3", Enumerable.Empty<HtmlAttribute>()) });
+            htmlParser.Setup(p => p.Seasons(It.IsAny<string>()))
+                .Returns(new[]
+                {
+                    3
+                });
 
             htmlParser.Setup(p => p.ShowIsCancelled(It.IsAny<string>()))
                 .Returns(true);
@@ -297,8 +300,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             var htmlParser = new Mock<IHtmlParser>();
 
             // Setup with new season.
-            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
-                .Returns(new SeasonNode[] { new ("4", new HtmlAttribute[] { new ("href", "linkValue") }) });
+            htmlParser.Setup(p => p.Seasons(It.IsAny<string>()))
+                .Returns(new[]
+                {
+                    4
+                });
 
             htmlParser.Setup(p => p.AnyEpisodeHasAired(It.IsAny<string>()))
                 .Returns(true);
@@ -332,8 +338,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
             var htmlParser = new Mock<IHtmlParser>();
 
-            htmlParser.Setup(p => p.SeasonNodes(It.IsAny<string>()))
-                .Returns(new SeasonNode[] { new ("3", new HtmlAttribute[] { new ("href", "linkValue") }) });
+            htmlParser.Setup(p => p.Seasons(It.IsAny<string>()))
+                .Returns(new[]
+                {
+                    4
+                });
 
             htmlParser.Setup(p => p.ShowIsCancelled(It.IsAny<string>()))
                 .Returns(false);

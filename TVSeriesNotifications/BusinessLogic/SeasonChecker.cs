@@ -77,7 +77,7 @@ namespace TVSeriesNotifications.BusinessLogic
             {
                 var firstUpcomingSeason = seasonNodes.Where(s => IsUpcomingSeason(s, latestAiredSeason)).LastOrDefault();
 
-                if (firstUpcomingSeason is 0 && _htmlParsingStrategies[tvShowId].ShowIsCancelled(tvShowPageContent))
+                if (!HasUpcomingSeason(firstUpcomingSeason) && _htmlParsingStrategies[tvShowId].ShowIsCancelled(tvShowPageContent))
                 {
                     MarkShowAsCancelled(tvShow);
                     return AsyncTryResponse<NewSeason>(false, null);
@@ -98,6 +98,8 @@ namespace TVSeriesNotifications.BusinessLogic
 
             return AsyncTryResponse<NewSeason>(false, null);
         }
+
+        private static bool HasUpcomingSeason(int firstUpcomingSeason) => firstUpcomingSeason != default;
 
         private async Task<bool> UpcomingSeasonAired(string tvShowId, int firstUpcomingSeason)
             => firstUpcomingSeason is not 0 && await IsNewestAiredSeason(tvShowId, firstUpcomingSeason);
@@ -142,14 +144,14 @@ namespace TVSeriesNotifications.BusinessLogic
         private bool ShowIsOnGoing(Suggestion tvShowSuggestion)
         {
             // Ended examples 2019, 2015-2019
-            // Ongoing examples 2018-, 2018-2021(ends in current year + n years)
+            // Ongoing examples 2018-, 2018-2100(ends in current year + n years)
             var yearRangeSplit = tvShowSuggestion.YearRange
                 .Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(y => int.Parse(y))
                 .ToArray();
 
             return tvShowSuggestion.Category != TVCategory.TVMiniSeries
-                && (tvShowSuggestion.YearRange.Last() == '-' || (yearRangeSplit.Length == 2 && yearRangeSplit[1] > _dateTimeProvider.Now.Year));
+                && (tvShowSuggestion.YearRange.Last() == '-' || (yearRangeSplit.Length == 2 && yearRangeSplit[1] >= _dateTimeProvider.Now.Year));
         }
 
         private async Task<(bool success, Suggestion suggestion)> TryGetTvShowSuggestionAsync(string searchValue)
@@ -167,7 +169,7 @@ namespace TVSeriesNotifications.BusinessLogic
             return AsyncTryResponse(success: true, tvShow);
         }
 
-        private bool IsUpcomingSeason(int currentSeason, int latestAiredSeason) // there can be more than one confirmed seasons
+        private static bool IsUpcomingSeason(int currentSeason, int latestAiredSeason) // there can be more than one confirmed seasons
             => currentSeason > latestAiredSeason;
 
         private async Task<int> FindLatestAiredSeason(string tvShowId, ICollection<int> seasons)
@@ -185,7 +187,7 @@ namespace TVSeriesNotifications.BusinessLogic
             throw new ImdbHtmlChangedException("No latest aired season found");
         }
 
-        private bool TvShowToBeAired(int season, int seasonCount) => season is 1 && seasonCount is 1;
+        private static bool TvShowToBeAired(int season, int seasonCount) => season is 1 && seasonCount is 1;
 
         private async Task<bool> IsNewestAiredSeason(string tvShowId, int season)
         {

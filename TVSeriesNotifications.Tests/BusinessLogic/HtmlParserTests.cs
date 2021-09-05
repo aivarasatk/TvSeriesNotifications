@@ -11,58 +11,40 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
         public HtmlParserTests()
         {
-			_parser = new HtmlParser(new DateTimeProvider.DateTimeProvider());
+			_parser = new HtmlParserV1(new DateTimeProvider.DateTimeProvider());
 		}
 
         [Fact]
-        public void GivenValidHtml_SeasonNodesAreReturned()
+        public void GivenValidHtml_SeasonsAreReturned()
         {
 			// Arrange & Act
-			var result = _parser.SeasonNodes(ValidHtmlWith8SeasonNodes);
+			var result = _parser.Seasons(ValidHtmlWith8Seasons);
 
 			Assert.NotEmpty(result);
         }
 
 		[Fact]
-		public void GivenValidHtml_SeasonNodesHaveCorrectSeasonValues()
-		{
-			// Arrange 
-			var actualSeasons = new[] { "1", "2", "3", "4", "5", "6", "7", "8" };
-
-			// Act
-			var result = _parser.SeasonNodes(ValidHtmlWith8SeasonNodes).ToList();
-
-			Assert.True(result.Count == 8);
-
-			foreach (var season in actualSeasons)
-				Assert.Contains(result, r => r.InnerText == season);
-		}
-
-		[Fact]
-		public void GivenValidHtml_SeasonNodesHaveLinks()
+		public void GivenValidHtml_SeasonsHaveCorrectSeasonValues()
 		{
 			// Arrange & Act
-			var result = _parser.SeasonNodes(ValidHtmlWith8SeasonNodes).ToList();
+			var result = _parser.Seasons(ValidHtmlWith8Seasons).ToList();
 
-			//Assert
-			Assert.All(result,
-				val => val.Attributes
-				.Select(a => a)
-				.Any(lnk => lnk.Name == "href" && lnk.Value.Contains("/title/tt2741602/episodes?season=")));
+			// Assert
+			Assert.True(result.Count == 8);
 		}
 
 		[Fact]
-		public void GivenHtmlWithoutSeasonNode_SeasonNodesThrows()
+		public void GivenHtmlWithoutSeasonNode_SeasonsThrows()
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => _parser.SeasonNodes("<html></html>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.Seasons("<html></html>"));
 		}
 
 		[Fact]
-		public void GivenHtmlWithoutLinksToSeason_SeasonNodesThrows()
+		public void GivenHtmlWithoutLinksToSeason_SeasonsThrows()
 		{
 			// Arrange & Act & Assert
-			Assert.Throws<ImdbHtmlChangedException>(() => _parser.SeasonNodes("<html><div class=\"seasons-and-year-nav\"></div></html>"));
+			Assert.Throws<ImdbHtmlChangedException>(() => _parser.Seasons("<html><div class=\"seasons-and-year-nav\"></div></html>"));
 		}
 
 		[Fact]
@@ -92,13 +74,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 			Assert.Throws<ImdbHtmlChangedException>(() => _parser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series {yearRange}</a></div>"));
 		}
 
-		[Theory]
-		[InlineData("(2018–)")]// long dash '–'
-		[InlineData("(2018–2100)")]
-		public void GivenValidOngoingShowHtml_ShowIsNotCancelled(string yearRange)
+		[Fact]
+		public void GivenValidOngoingShowHtml_ShowIsNotCancelled()
 		{
 			// Arrange & Act
-			var cancelled = _parser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series {yearRange}</a></div>");
+			var cancelled = _parser.ShowIsCancelled($"<div><a title=\"See more release dates\">TV Series (2018–)</a></div>");
 
 			//Assert
 			Assert.False(cancelled);
@@ -161,7 +141,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 			Assert.False(aired);
 		}
 
-		private const string ValidHtmlWith8SeasonNodes =
+		private const string ValidHtmlWith8Seasons =
 		@"<html>
 			<div></div>
 			<div/>
@@ -207,17 +187,6 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 					Thrones<span class=""description""> (original title)</span>
 				</div>
 				<div class=""subtext"">
-					<time datetime=""PT57M"">
-						57min
-					</time>
-					<span class=""ghost"">|</span>
-					<a
-						href=""/search/title?genres=action&explore=title_type,genres&ref_=tt_ov_inf"">Action</a>,
-					<a
-						href=""/search/title?genres=adventure&explore=title_type,genres&ref_=tt_ov_inf"">Adventure</a>,
-					<a
-						href=""/search/title?genres=drama&explore=title_type,genres&ref_=tt_ov_inf"">Drama</a>
-					<span class=""ghost"">|</span>
 					<a href=""/title/tt0944947/releaseinfo?ref_=tt_ov_inf""
 						title=""See more release dates"">TV Series (2011–2019)
 					</a> </div>

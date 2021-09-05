@@ -24,7 +24,9 @@ namespace TVSeriesNotifications.BusinessLogic
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
 
-            if (htmlDocument.DocumentNode.SelectSingleNode("//div[@class='ipc-button__text']") is not null)
+            if (htmlDocument.DocumentNode
+                .SelectNodes("//div[@class='ipc-button__text']")
+                .Any(node => node.InnerText is "1 Season"))
                 return new[] { 1 };
 
             var seasonListNode = htmlDocument.DocumentNode.SelectSingleNode("//select[@id='browse-episodes-season']");
@@ -58,7 +60,7 @@ namespace TVSeriesNotifications.BusinessLogic
                 .Select(s => int.Parse(s))
                 .ToArray();
 
-            return years.Length == 2 && years[1] <= _dateTimeProvider.Now.Year;
+            return years.Length == 2; // year range indicates cancelation
         }
     }
 }

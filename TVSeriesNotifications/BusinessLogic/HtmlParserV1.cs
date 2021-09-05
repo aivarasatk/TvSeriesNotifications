@@ -62,7 +62,7 @@ namespace TVSeriesNotifications.BusinessLogic
                 .Select(s => int.Parse(s))
                 .ToArray();
 
-            return years.Length == 2 && years[1] <= _dateTimeProvider.Now.Year;
+            return years.Length == 2; // year range indicates cancelation
         }
     }
 }

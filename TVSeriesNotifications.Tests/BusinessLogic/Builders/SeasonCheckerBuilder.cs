@@ -1,6 +1,7 @@
 ﻿using Moq;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
+using TVSeriesNotifications.Common;
 using TVSeriesNotifications.DateTimeProvider;
 using TVSeriesNotifications.Persistance;
 
@@ -65,7 +66,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic.Builders
         {
             return new SeasonChecker(
                 _client,
-                _htmlParser,
+                new HtmlParserStrategyFactory(),
                 _cacheTvShowIds,
                 _cacheIgnoredTvShows,
                 _cacheLatestAiredSeasons,
