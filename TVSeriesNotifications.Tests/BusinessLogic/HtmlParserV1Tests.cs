@@ -5,11 +5,11 @@ using Xunit;
 
 namespace TVSeriesNotifications.Tests.BusinessLogic
 {
-    public class HtmlParserTests
+    public class HtmlParserV1Tests
     {
 		private readonly IHtmlParser _parser;
 
-        public HtmlParserTests()
+        public HtmlParserV1Tests()
         {
 			_parser = new HtmlParserV1(new DateTimeProvider.DateTimeProvider());
 		}
@@ -130,7 +130,6 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
 		[Theory]
 		[InlineData("")]
-		[InlineData("2020")]
 		[InlineData("2100")]
 		public void When_AirDates_AreNotValid_EpisodesAreConsideredNotAired(string airDate) // May is not abrieviated like Sep. or Jun.
 		{

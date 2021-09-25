@@ -26,7 +26,8 @@ namespace TVSeriesNotifications.BusinessLogic
 
             if (htmlDocument.DocumentNode
                 .SelectNodes("//div[@class='ipc-button__text']")
-                .Any(node => node.InnerText is "1 Season"))
+                ?.Any(node => node.InnerText is "1 Season")
+                is true)
                 return new[] { 1 };
 
             var seasonListNode = htmlDocument.DocumentNode.SelectSingleNode("//select[@id='browse-episodes-season']");
@@ -54,7 +55,7 @@ namespace TVSeriesNotifications.BusinessLogic
             var yearRange = yearRangeNode.InnerText;
 
             if (!yearRange.Contains('–')) // long dash (–) is used
-                throw new ImdbHtmlChangedException($"Cannot find year range delimiter '–' in page contents {yearRange}'. e.g. \"2011–2019\"");
+                return true; // Usually for non Mini-Series season starts with hope of future seasons ;) In this case season aired and was cancelled
 
             var years = yearRange.Split('–', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(s => int.Parse(s))
