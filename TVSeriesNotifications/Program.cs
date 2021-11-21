@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
-using SafeParallel;
+using System.Threading.Tasks.Dataflow;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
 using TVSeriesNotifications.Common;
@@ -55,14 +55,24 @@ namespace TVSeriesNotifications
 
         private static async Task CheckForNewSeasonsAsync(IEnumerable<string> tvShows)
         {
-            await tvShows.SafeParallelAsync(async tvShow =>
+            var worker = new ActionBlock<string>(async tvShow =>
             {
                 var (newSeasonAired, newSeason) = await _seasonChecker.TryCheckForNewSeasonAsync(tvShow);
                 if (newSeasonAired)
                 {
                     _notificationService.NotifyNewSeason(newSeason);
                 }
+            }, 
+            new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = 50,
             });
+
+            foreach (var tvShow in tvShows)
+                await worker.SendAsync(tvShow);
+
+            worker.Complete();
+            await worker.Completion;
         }
     }
 }
