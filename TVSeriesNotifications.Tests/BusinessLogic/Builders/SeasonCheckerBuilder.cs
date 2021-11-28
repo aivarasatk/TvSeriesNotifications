@@ -1,9 +1,9 @@
 ﻿using Moq;
-using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
-using TVSeriesNotifications.Common;
-using TVSeriesNotifications.DateTimeProvider;
-using TVSeriesNotifications.Persistance;
+using TVSeriesNotifications.Core.DateTimeProvider;
+using TVSeriesNotifications.Domain.Ports.HtmlParser;
+using TVSeriesNotifications.Domain.Ports.ImdbClient;
+using TVSeriesNotifications.Domain.Ports.Repository;
 
 namespace TVSeriesNotifications.Tests.BusinessLogic.Builders
 {

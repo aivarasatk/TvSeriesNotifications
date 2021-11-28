@@ -1,6 +1,8 @@
 using System.Linq;
-using TVSeriesNotifications.BusinessLogic;
-using TVSeriesNotifications.CustomExceptions;
+using TVSeriesNotifications.Core.DateTimeProvider;
+using TVSeriesNotifications.Domain.Ports.HtmlParser;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 using Xunit;
 
 namespace TVSeriesNotifications.Tests.BusinessLogic
@@ -11,7 +13,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
         public HtmlParserV1Tests()
         {
-			_parser = new HtmlParserV1(new DateTimeProvider.DateTimeProvider());
+			_parser = new HtmlParserV1(new DateTimeProvider());
 		}
 
         [Fact]
