@@ -10,7 +10,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic.Builders
     public class SeasonCheckerBuilder
     {
         private IImdbClient _client;
-        private IHtmlParser _htmlParser;
+        private IHtmlParserStrategyFactory _htmlParserStrategy;
         private IPersistantCache<string> _cacheTvShowIds;
         private IPersistantCache<string> _cacheIgnoredTvShows;
         private IPersistantCache<int> _cacheLatestAiredSeasons;
@@ -19,7 +19,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic.Builders
         public SeasonCheckerBuilder()
         {
             _client = new Mock<IImdbClient>().Object;
-            _htmlParser = new Mock<IHtmlParser>().Object;
+            _htmlParserStrategy = new Mock<IHtmlParserStrategyFactory>().Object;
             _cacheTvShowIds = new Mock<IPersistantCache<string>>().Object;
             _cacheIgnoredTvShows = new Mock<IPersistantCache<string>>().Object;
             _cacheLatestAiredSeasons = new Mock<IPersistantCache<int>>().Object;
@@ -32,9 +32,9 @@ namespace TVSeriesNotifications.Tests.BusinessLogic.Builders
             return this;
         }
 
-        public SeasonCheckerBuilder WithHtmlParser(IHtmlParser parser)
+        public SeasonCheckerBuilder WithHtmlParserStrategy(IHtmlParserStrategyFactory parserStrategy)
         {
-            _htmlParser = parser;
+            _htmlParserStrategy = parserStrategy;
             return this;
         }
 
@@ -66,7 +66,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic.Builders
         {
             return new SeasonChecker(
                 _client,
-                new HtmlParserStrategyFactory(),
+                _htmlParserStrategy,
                 _cacheTvShowIds,
                 _cacheIgnoredTvShows,
                 _cacheLatestAiredSeasons,

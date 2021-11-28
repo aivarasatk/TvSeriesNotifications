@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
+using TVSeriesNotifications.Common;
 using TVSeriesNotifications.CustomExceptions;
 using TVSeriesNotifications.DateTimeProvider;
 using TVSeriesNotifications.DTO;
@@ -120,12 +121,16 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                     1
                 });
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(htmlParser.Object);
+
             var latestAiredSeason = new Fakes.Persistance.FakePersistantCache<int>();
 
             var sut = new SeasonCheckerBuilder()
                 .WithCacheLatestAiredSeasons(latestAiredSeason)
                 .WithImdbClient(imdbClient.Object)
-                .WithHtmlParser(htmlParser.Object)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .WithDateTimeProvider(dateTimeProvider.Object)
                 .Build();
 
@@ -161,6 +166,10 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                     2
                 });
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(htmlParser.Object);
+
             htmlParser.Setup(p => p.AnyEpisodeHasAired(It.IsAny<string>()))
                 .Returns(true);
 
@@ -168,7 +177,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
             var sut = new SeasonCheckerBuilder()
                 .WithImdbClient(imdbClient.Object)
-                .WithHtmlParser(htmlParser.Object)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .WithCacheLatestAiredSeasons(latestAiredTvShowCache)
                 .Build();
 
@@ -195,11 +204,16 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                     }
                 }));
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(new Mock<IHtmlParser>().Object);
+
             var latestAiredTvShowCache = new FakePersistantCache<int>();
 
             var sut = new SeasonCheckerBuilder()
                 .WithImdbClient(imdbClient.Object)
                 .WithCacheLatestAiredSeasons(latestAiredTvShowCache)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .Build();
 
             // Act & Assert
@@ -232,9 +246,13 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                     2
                 });
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(htmlParser.Object);
+
             var sut = new SeasonCheckerBuilder()
                 .WithImdbClient(imdbClient.Object)
-                .WithHtmlParser(htmlParser.Object)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .WithCacheLatestAiredSeasons(latestAiredTvShowCache)
                 .Build();
 
@@ -268,11 +286,15 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             htmlParser.Setup(p => p.ShowIsCancelled(It.IsAny<string>()))
                 .Returns(true);
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(htmlParser.Object);
+
             var sut = new SeasonCheckerBuilder()
                 .WithCacheTvShowIds(tvShowIdCache)
                 .WithCacheLatestAiredSeasons(latestAiredSeasonCache)
                 .WithCacheIgnoredTvShows(ignoredTvShowCache)
-                .WithHtmlParser(htmlParser.Object)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .Build();
 
             // Act & Assert
@@ -309,10 +331,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             htmlParser.Setup(p => p.AnyEpisodeHasAired(It.IsAny<string>()))
                 .Returns(true);
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(htmlParser.Object);
+
             var sut = new SeasonCheckerBuilder()
                 .WithCacheTvShowIds(tvShowIdCache)
                 .WithCacheLatestAiredSeasons(latestAiredSeasonCache)
-                .WithHtmlParser(htmlParser.Object)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .Build();
 
             // Act & Assert
@@ -347,11 +373,15 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             htmlParser.Setup(p => p.ShowIsCancelled(It.IsAny<string>()))
                 .Returns(false);
 
+            var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
+            htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
+                .Returns(htmlParser.Object);
+
             var sut = new SeasonCheckerBuilder()
                 .WithCacheTvShowIds(tvShowIdCache)
                 .WithCacheLatestAiredSeasons(latestAiredSeasonCache)
                 .WithCacheIgnoredTvShows(ignoredTvShowCache)
-                .WithHtmlParser(htmlParser.Object)
+                .WithHtmlParserStrategy(htmlParserStrategyFactory.Object)
                 .Build();
 
             // Act & Assert
