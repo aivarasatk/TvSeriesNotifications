@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json;
 using TVSeriesNotifications.Domain.Models;
 using TVSeriesNotifications.Domain.Ports.ImdbClient;
 using TVSeriesNotifications.Infrastructure.Adapters.ImdbClient.Domain;
@@ -56,7 +56,7 @@ namespace TVSeriesNotifications.Api
         private async Task<T> GetRequestAsync<T>(string url)
         {
             var content = (await GetRequestAsync(url))!;
-            return JsonSerializer.Deserialize<T>(content)!;
+            return JsonConvert.DeserializeObject<T>(content)!;
         }
 
         public void Dispose()
