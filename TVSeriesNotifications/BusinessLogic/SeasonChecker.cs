@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TVSeriesNotifications.Api;
-using TVSeriesNotifications.Common;
-using TVSeriesNotifications.CustomExceptions;
-using TVSeriesNotifications.DateTimeProvider;
-using TVSeriesNotifications.DTO;
-using TVSeriesNotifications.JsonModels;
-using TVSeriesNotifications.Persistance;
+using TVSeriesNotifications.Core.DateTimeProvider;
+using TVSeriesNotifications.Domain.Models;
+using TVSeriesNotifications.Domain.Ports.HtmlParser;
+using TVSeriesNotifications.Domain.Ports.ImdbClient;
+using TVSeriesNotifications.Domain.Ports.Repository;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 
 namespace TVSeriesNotifications.BusinessLogic
 {
@@ -141,7 +140,7 @@ namespace TVSeriesNotifications.BusinessLogic
         private (bool success, T value) AsyncTryResponse<T>(bool success, T value = default)
             => (success, value);
 
-        private bool ShowIsOnGoing(Suggestion tvShowSuggestion)
+        private bool ShowIsOnGoing(TvShow tvShowSuggestion)
         {
             // Ended examples 2019, 2015-2019
             // Ongoing examples 2018-, 2018-2100(ends in current year + n years)
@@ -154,17 +153,17 @@ namespace TVSeriesNotifications.BusinessLogic
                 && (tvShowSuggestion.YearRange.Last() == '-' || (yearRangeSplit.Length == 2 && yearRangeSplit[1] >= _dateTimeProvider.Now.Year));
         }
 
-        private async Task<(bool success, Suggestion suggestion)> TryGetTvShowSuggestionAsync(string searchValue)
+        private async Task<(bool success, TvShow suggestion)> TryGetTvShowSuggestionAsync(string searchValue)
         {
             var suggestions = await _client.GetSuggestionsAsync(searchValue);
 
-            var tvShow = suggestions?.Suggestions?.FirstOrDefault(s =>
+            var tvShow = suggestions.FirstOrDefault(s =>
                 s.Title.ToLower().Equals(searchValue.ToLower())
                 && s.Category == TVCategory.TVSeries
                 && s.YearStart > 2000);
 
             if (tvShow is null)
-                return AsyncTryResponse<Suggestion>(false);
+                return AsyncTryResponse<TvShow>(false);
 
             return AsyncTryResponse(success: true, tvShow);
         }

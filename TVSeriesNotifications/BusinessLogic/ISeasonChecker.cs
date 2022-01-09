@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TVSeriesNotifications.DTO;
+﻿using System.Threading.Tasks;
+using TVSeriesNotifications.Domain.Models;
 
 namespace TVSeriesNotifications.BusinessLogic
 {

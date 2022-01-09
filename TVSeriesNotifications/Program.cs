@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using TVSeriesNotifications.Api;
 using TVSeriesNotifications.BusinessLogic;
-using TVSeriesNotifications.Common;
-using TVSeriesNotifications.CustomExceptions;
+using TVSeriesNotifications.Core.DateTimeProvider;
+using TVSeriesNotifications.Domain.Ports.Notifications;
+using TVSeriesNotifications.Domain.Ports.Repository;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 using TVSeriesNotifications.Notifications;
 using TVSeriesNotifications.Persistance;
 
@@ -22,7 +25,7 @@ namespace TVSeriesNotifications
         static Program()
         {
             var client = new ImdbClient();
-            var dateTimeProvider = new DateTimeProvider.DateTimeProvider();
+            var dateTimeProvider = new DateTimeProvider();
             var htmlParserStrategy = new HtmlParserStrategyFactory();
             var cacheTvShowIds = new PersistantCache<string>("Cache/TvShowIds");
             var cacheIgnoredTvShows = new PersistantCache<string>("Cache/IgnoredTvShows");

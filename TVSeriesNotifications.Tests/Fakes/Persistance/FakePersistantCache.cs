@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using TVSeriesNotifications.Persistance;
+using TVSeriesNotifications.Domain.Ports.Repository;
 
 namespace TVSeriesNotifications.Tests.Fakes.Persistance
 {

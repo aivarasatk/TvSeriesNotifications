@@ -1,18 +1,18 @@
 ﻿using Moq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using TVSeriesNotifications.Api;
-using TVSeriesNotifications.BusinessLogic;
-using TVSeriesNotifications.Common;
-using TVSeriesNotifications.CustomExceptions;
-using TVSeriesNotifications.DateTimeProvider;
-using TVSeriesNotifications.DTO;
-using TVSeriesNotifications.Persistance;
 using TVSeriesNotifications.Tests.BusinessLogic.Builders;
 using TVSeriesNotifications.Tests.Fakes.Persistance;
+using TVSeriesNotifications.Core.DateTimeProvider;
+using TVSeriesNotifications.Domain.Ports.HtmlParser;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 using Xunit;
+using TVSeriesNotifications.Domain.Ports.Repository;
+using TVSeriesNotifications.Domain.Ports.ImdbClient;
+using TVSeriesNotifications.Infrastructure.Adapters.ImdbClient.Domain;
+using TVSeriesNotifications.Domain.Models;
+using System.Linq;
 
 namespace TVSeriesNotifications.Tests.BusinessLogic
 {
@@ -43,9 +43,9 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             // Arrange
             var imdbClient = new Mock<IImdbClient>();
             imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion()));
+                .Returns(Task.FromResult(Enumerable.Empty<TvShow>()));
 
-            var ignoredTvShowsCache = new Fakes.Persistance.FakePersistantCache<string>();
+            var ignoredTvShowsCache = new FakePersistantCache<string>();
 
             var sut = new SeasonCheckerBuilder()
                 .WithCacheIgnoredTvShows(ignoredTvShowsCache)
@@ -66,15 +66,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         public async Task When_TvShowIsNotOngoing_TvShowIsAddedToIgnoredList(string yearRange)
         {
             // Arrange
+            IEnumerable<TvShow> suggestions = new TvShow[]
+            {
+                new ("", "The Blacklist", TVCategory.TVSeries, 2015, yearRange)
+            };
+
             var imdbClient = new Mock<IImdbClient>();
             imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
-                {
-                    Suggestions = new JsonModels.Suggestion[]
-                    {
-                        new ("TV series", "", "The Blacklist", 2015, yearRange)
-                    }
-                }));
+                .Returns(Task.FromResult(suggestions));
 
             var dateTimeProvider = new Mock<IDateTimeProvider>();
             dateTimeProvider.Setup(m => m.Now).Returns(new DateTime(2020, 1, 1));
@@ -101,15 +100,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             // Arrange
             var newTvShow = "New Tv Show";
 
+            IEnumerable<TvShow> suggestions = new TvShow[]
+            {
+                new ("", newTvShow, TVCategory.TVSeries, 2023, "2023-")
+            };
+
             var imdbClient = new Mock<IImdbClient>();
             imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
-                {
-                    Suggestions = new JsonModels.Suggestion[]
-                    {
-                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2023, yearRange: "2023-")
-                    }
-                }));
+                .Returns(Task.FromResult(suggestions));
 
             var dateTimeProvider = new Mock<IDateTimeProvider>();
             dateTimeProvider.Setup(m => m.Now).Returns(new DateTime(2022, 1, 1)); // Stubbed suggestion is now "to be aired"
@@ -125,7 +123,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
                 .Returns(htmlParser.Object);
 
-            var latestAiredSeason = new Fakes.Persistance.FakePersistantCache<int>();
+            var latestAiredSeason = new FakePersistantCache<int>();
 
             var sut = new SeasonCheckerBuilder()
                 .WithCacheLatestAiredSeasons(latestAiredSeason)
@@ -148,15 +146,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             // Arrange
             var newTvShow = "The Blacklist";
 
+            IEnumerable<TvShow> suggestions = new TvShow[]
+            {
+                new ("", newTvShow, TVCategory.TVSeries, 2020, "2020-")
+            };
+
             var imdbClient = new Mock<IImdbClient>();
             imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
-                {
-                    Suggestions = new JsonModels.Suggestion[]
-                    {
-                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2020, yearRange: "2020-")
-                    }
-                }));
+                .Returns(Task.FromResult(suggestions));
 
             var htmlParser = new Mock<IHtmlParser>();
             htmlParser.Setup(p => p.Seasons(It.IsAny<string>()))
@@ -194,15 +191,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             // Arrange
             var newTvShow = "The Blacklist";
 
+            IEnumerable<TvShow> suggestions = new TvShow[]
+            {
+                new ("", newTvShow, TVCategory.TVSeries, 2020, "2020-")
+            };
+
             var imdbClient = new Mock<IImdbClient>();
             imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
-                {
-                    Suggestions = new JsonModels.Suggestion[]
-                    {
-                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2020, yearRange: "2020-")
-                    }
-                }));
+                .Returns(Task.FromResult(suggestions));
 
             var htmlParserStrategyFactory = new Mock<IHtmlParserStrategyFactory>();
             htmlParserStrategyFactory.Setup(h => h.ResolveParsingStrategy(It.IsAny<string>()))
@@ -226,15 +222,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             // Arrange
             var newTvShow = "The Blacklist";
 
+            IEnumerable<TvShow> suggestions = new TvShow[]
+            {
+                new ("", newTvShow, TVCategory.TVSeries, 2020, "2020-")
+            };
+
             var imdbClient = new Mock<IImdbClient>();
             imdbClient.Setup(m => m.GetSuggestionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new JsonModels.ImdbSuggestion
-                {
-                    Suggestions = new JsonModels.Suggestion[]
-                    {
-                        new (category: "TV series", id: "", title: newTvShow, yearStart: 2020, yearRange: "2020-")
-                    }
-                }));
+                .Returns(Task.FromResult(suggestions));
 
             var latestAiredTvShowCache = new FakePersistantCache<int>();
 

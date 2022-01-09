@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30406.217
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TVSeriesNotifications", "TVSeriesNotifications\TVSeriesNotifications.csproj", "{C643E7AF-272F-400D-AFC2-4FD15D29729B}"
 EndProject
@@ -10,7 +10,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVSeriesNotifications.Tests", "TVSeriesNotifications.Tests\TVSeriesNotifications.Tests.csproj", "{C8816F1D-F58F-4162-BA81-E438FBCE0857}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TVSeriesNotifications.Tests", "TVSeriesNotifications.Tests\TVSeriesNotifications.Tests.csproj", "{C8816F1D-F58F-4162-BA81-E438FBCE0857}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVSeriesNotifications.Domain", "TVSeriesNotifications.Domain\TVSeriesNotifications.Domain.csproj", "{AAB98C9E-0BDF-4473-BD8F-F240E4E1311C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVSeriesNotifications.Infrastructure", "TVSeriesNotifications.Infrastructure\TVSeriesNotifications.Infrastructure.csproj", "{4F318C32-49B1-4B43-ADFD-7EC950232F63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVSeriesNotifications.Core", "TVSeriesNotifications.Core\TVSeriesNotifications.Core.csproj", "{B026AFC9-5CAC-4561-AB1C-EC329389857F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +32,18 @@ Global
 		{C8816F1D-F58F-4162-BA81-E438FBCE0857}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8816F1D-F58F-4162-BA81-E438FBCE0857}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8816F1D-F58F-4162-BA81-E438FBCE0857}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAB98C9E-0BDF-4473-BD8F-F240E4E1311C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAB98C9E-0BDF-4473-BD8F-F240E4E1311C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAB98C9E-0BDF-4473-BD8F-F240E4E1311C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAB98C9E-0BDF-4473-BD8F-F240E4E1311C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F318C32-49B1-4B43-ADFD-7EC950232F63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F318C32-49B1-4B43-ADFD-7EC950232F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F318C32-49B1-4B43-ADFD-7EC950232F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F318C32-49B1-4B43-ADFD-7EC950232F63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B026AFC9-5CAC-4561-AB1C-EC329389857F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B026AFC9-5CAC-4561-AB1C-EC329389857F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B026AFC9-5CAC-4561-AB1C-EC329389857F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B026AFC9-5CAC-4561-AB1C-EC329389857F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
