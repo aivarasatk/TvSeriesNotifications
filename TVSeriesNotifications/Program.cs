@@ -46,7 +46,7 @@ namespace TVSeriesNotifications
             }
             catch (ImdbHtmlChangedException ihce)
             {
-                _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed exception ({ihce.InnerException}): {ihce.Message}");
+                _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed exception ({ihce.InnerException}): {ihce.Message}{Environment.NewLine}{ihce.StackTrace}");
             }
             catch (Exception ex)
             {

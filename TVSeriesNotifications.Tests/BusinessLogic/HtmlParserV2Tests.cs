@@ -117,14 +117,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         <span></span>";
 
         private const string MissingDateRangeSeparatorHtml = @"
-        <span class=""TitleBlockMetaData__ListItemText-sc-12ein40-2 jedhex"">
+        <span class=""sc-52284603-2 iTRONr"">
             2010
         </span>";
 
         private string DateRangeHtmlBuilder(string range)
         {
             return @$"
-            <span class=""TitleBlockMetaData__ListItemText-sc-12ein40-2 jedhex"">
+            <span class=""sc-52284603-2 iTRONr"">
                 {range}
             </span>";
         }

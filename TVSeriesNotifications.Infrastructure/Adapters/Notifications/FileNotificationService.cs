@@ -18,7 +18,7 @@ namespace TVSeriesNotifications.Notifications
         {
             lock (ErrorFileName)
             {
-                File.AppendAllText(Path.Combine(_fileLocation, ErrorFileName), message);
+                File.AppendAllText(Path.Combine(_fileLocation, ErrorFileName), $"{message}{Environment.NewLine}");
             }
         }
 
@@ -29,7 +29,7 @@ namespace TVSeriesNotifications.Notifications
 
             lock (NewSeasonFileName)
             {
-                File.AppendAllText(Path.Combine(_fileLocation, NewSeasonFileName), $"{season.TvShow} season {season.Season} has aired");
+                File.AppendAllText(Path.Combine(_fileLocation, NewSeasonFileName), $"{season.TvShow} season {season.Season} has aired{Environment.NewLine}");
             }
         }
     }
