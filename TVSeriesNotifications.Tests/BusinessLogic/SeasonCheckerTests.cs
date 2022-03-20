@@ -10,7 +10,6 @@ using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 using Xunit;
 using TVSeriesNotifications.Domain.Ports.Repository;
 using TVSeriesNotifications.Domain.Ports.ImdbClient;
-using TVSeriesNotifications.Infrastructure.Adapters.ImdbClient.Domain;
 using TVSeriesNotifications.Domain.Models;
 using System.Linq;
 
@@ -94,15 +93,17 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             Assert.NotEmpty(ignoredTvShowsCache.CacheItems);
         }
 
-        [Fact]
-        public async Task When_TvShowIsToBeAired_ItIsAddedToSubscriptionList()
+        [Theory]
+        [InlineData(TVCategory.TVSeries)]
+        [InlineData(TVCategory.TVMiniSeries)]
+        public async Task When_TvShowIsToBeAired_ItIsAddedToSubscriptionList(TVCategory category)
         {
             // Arrange
             var newTvShow = "New Tv Show";
 
             IEnumerable<TvShow> suggestions = new TvShow[]
             {
-                new ("", newTvShow, TVCategory.TVSeries, 2023, "2023-")
+                new ("", newTvShow, category, 2023, "2023-")
             };
 
             var imdbClient = new Mock<IImdbClient>();
