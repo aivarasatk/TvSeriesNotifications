@@ -61,7 +61,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
         [Theory]
         [InlineData("2015-2019")]
-        [InlineData("2019")]
+        [InlineData("2019-2019")]
         public async Task When_TvShowIsNotOngoing_TvShowIsAddedToIgnoredList(string yearRange)
         {
             // Arrange
@@ -94,16 +94,17 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         }
 
         [Theory]
-        [InlineData(TVCategory.TVSeries)]
-        [InlineData(TVCategory.TVMiniSeries)]
-        public async Task When_TvShowIsToBeAired_ItIsAddedToSubscriptionList(TVCategory category)
+        [InlineData(TVCategory.TVSeries, null)]
+        [InlineData(TVCategory.TVMiniSeries, "2022-2022")]
+        [InlineData(TVCategory.TVMiniSeries, "2023-2023")]
+        public async Task When_TvShowIsToBeAired_ItIsAddedToSubscriptionList(TVCategory category, string yearRange)
         {
             // Arrange
             var newTvShow = "New Tv Show";
 
             IEnumerable<TvShow> suggestions = new TvShow[]
             {
-                new ("", newTvShow, category, 2023, "2023-")
+                new ("", newTvShow, category, 2023, yearRange)
             };
 
             var imdbClient = new Mock<IImdbClient>();
@@ -141,15 +142,17 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             Assert.True(latestAiredSeason.CacheItems.ContainsKey(newTvShow));
         }
 
-        [Fact]
-        public async Task When_AnOngoingTvShowIsFirstChecked_LatestAiredSeasonIsSet()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2020-2100")]
+        public async Task When_AnOngoingTvShowIsFirstChecked_LatestAiredSeasonIsSet(string yearRange)
         {
             // Arrange
             var newTvShow = "The Blacklist";
 
             IEnumerable<TvShow> suggestions = new TvShow[]
             {
-                new ("", newTvShow, TVCategory.TVSeries, 2020, "2020-")
+                new ("", newTvShow, TVCategory.TVSeries, 2020, yearRange)
             };
 
             var imdbClient = new Mock<IImdbClient>();
@@ -194,7 +197,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
             IEnumerable<TvShow> suggestions = new TvShow[]
             {
-                new ("", newTvShow, TVCategory.TVSeries, 2020, "2020-")
+                new ("", newTvShow, TVCategory.TVSeries, 2020, null)
             };
 
             var imdbClient = new Mock<IImdbClient>();
@@ -225,7 +228,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
             IEnumerable<TvShow> suggestions = new TvShow[]
             {
-                new ("", newTvShow, TVCategory.TVSeries, 2020, "2020-")
+                new ("", newTvShow, TVCategory.TVSeries, 2020, null)
             };
 
             var imdbClient = new Mock<IImdbClient>();

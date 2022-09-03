@@ -13,9 +13,14 @@ public static class SeasonHelper
 
     public static bool ShowIsOnGoing(TvShow tvShowSuggestion, DateTime today)
     {
-        // Ended examples 2019, 2015-2019
-        // Ongoing examples 2018-, 2100- (upcoming), 2018-2100(ends in current year + n years)
-        // Mini series 2100 (upcoming), Mini series for current year
+        // Ongoing examples Year: 2018, 2100 (upcoming)
+        // Ongoing examples Year: 2018 or YearRange: 2018-2100 (future year)
+        // Ended examples YearRange: 2019-2019, 2015-2019
+        // Ongoing Mini series YearRange: 2100-2100 (current/future year)
+
+        if (tvShowSuggestion.YearRange is null)
+            return true;
+
         var yearRangeSplit = tvShowSuggestion.YearRange
             .Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(y => int.Parse(y))
@@ -26,9 +31,9 @@ public static class SeasonHelper
     }
 
     private static bool OngoingMiniSeries(TvShow tvShowSuggestion, int[] yearRangeSplit, DateTime today)
-        => tvShowSuggestion.Category is TVCategory.TVMiniSeries && yearRangeSplit[0] >= today.Year;
+        => tvShowSuggestion.Category is TVCategory.TVMiniSeries && yearRangeSplit[1] >= today.Year;
 
     private static bool OngoingSeries(TvShow tvShowSuggestion, int[] yearRangeSplit, DateTime today)
-        => tvShowSuggestion.Category is not TVCategory.TVMiniSeries
-        && (tvShowSuggestion.YearRange.Last() is '-' || (yearRangeSplit.Length == 2 && yearRangeSplit[1] >= today.Year));
+        => tvShowSuggestion.Category is TVCategory.TVSeries
+        && yearRangeSplit[1] >= today.Year;
 }

@@ -13,8 +13,8 @@ namespace TVSeriesNotifications.BusinessLogic
 {
     public class SeasonChecker : ISeasonChecker
     {
-        private Dictionary<string, IHtmlParser> _htmlParsingStrategies = new();
-        private object _parsingStrategyLock = new();
+        private readonly Dictionary<string, IHtmlParser> _htmlParsingStrategies = new();
+        private readonly object _parsingStrategyLock = new();
 
         private readonly IImdbClient _client;
         private readonly IHtmlParserStrategyFactory _htmlParserStrategyFactory;
