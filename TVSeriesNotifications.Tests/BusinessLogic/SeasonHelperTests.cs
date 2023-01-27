@@ -10,7 +10,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         [Theory]
         [InlineData(2019, "2019-2020")]
         [InlineData(2019, "2019-2019")]
-        public async Task EndedTvSeries_AreNotOngoing(int yearStart, string yearRange)
+        public void EndedTvSeries_AreNotOngoing(int yearStart, string yearRange)
         {
             // Arrange
             var input = new TvShow(Id: "", Title: "", TVCategory.TVSeries, yearStart, yearRange);
@@ -26,7 +26,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         [InlineData(2019, null)]
         [InlineData(2100, null)]
         [InlineData(2019, "2019-2100")]
-        public async Task LiveTvSeries_AreOngoing(int yearStart, string yearRange)
+        public void LiveTvSeries_AreOngoing(int yearStart, string yearRange)
         {
             // Arrange
             var input = new TvShow(Id: "", Title: "", TVCategory.TVSeries, yearStart, yearRange);
@@ -39,7 +39,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         }
 
         [Fact]
-        public async Task TvSeriesEndingThisYear_AreOngoing()
+        public void TvSeriesEndingThisYear_AreOngoing()
         {
             // Arrange
             var input = new TvShow(Id: "", Title: "", TVCategory.TVSeries, 2010, $"2010-{DateTime.Now.Year}");
@@ -52,7 +52,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         }
 
         [Fact]
-        public async Task EndedTvMiniSeries_AreNotOngoing()
+        public void EndedTvMiniSeries_AreNotOngoing()
         {
             // Arrange
             var input = new TvShow(Id: "", Title: "", TVCategory.TVMiniSeries, 2010, "2010-2010");
@@ -68,7 +68,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         [InlineData(2100)]
         [InlineData(2022)]// "today's year"
         [InlineData(2023)]
-        public async Task UpcomingTvMiniSeries_AreOngoing(int year)
+        public void UpcomingTvMiniSeries_AreOngoing(int year)
         {
             // Arrange
             var input = new TvShow(Id: "", Title: "", TVCategory.TVMiniSeries, year, $"{year}-{year}");

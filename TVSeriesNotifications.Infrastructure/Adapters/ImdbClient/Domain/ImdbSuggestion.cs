@@ -6,6 +6,6 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.ImdbClient.Domain
     public class ImdbSuggestion
     {
         [DataMember(Name = "d")]
-        public IEnumerable<Suggestion> Suggestions { get; init; }
+        public IEnumerable<Suggestion>? Suggestions { get; init; }
     }
 }

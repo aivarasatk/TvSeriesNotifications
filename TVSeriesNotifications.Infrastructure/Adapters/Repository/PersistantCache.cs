@@ -5,7 +5,7 @@ namespace TVSeriesNotifications.Persistance
 {
     public class PersistantCache<T> : IPersistantCache<T>
     {
-        private FileCache _fileCache;
+        private readonly FileCache _fileCache;
 
         public PersistantCache(string cacheLocation)
         {

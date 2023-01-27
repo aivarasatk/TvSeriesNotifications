@@ -39,7 +39,7 @@ namespace TVSeriesNotifications.Api
 
             var suggestions = await GetRequestAsync<ImdbSuggestion>($"{BaseSuggestionUrl}/{index}/{urlReadySearchValue}");
 
-            return suggestions.Suggestions.Select(suggestion => new TvShow(
+            return suggestions.Suggestions!.Select(suggestion => new TvShow(
                 suggestion.Id,
                 suggestion.Title,
                 suggestion.Category,
