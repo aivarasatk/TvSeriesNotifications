@@ -20,14 +20,14 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             htmlDocument.LoadHtml(tvShowPageContent);
 
             if (htmlDocument.DocumentNode
-                .SelectNodes("//div[@class='ipc-button__text']")
+                .SelectNodes("//div[@class='ipc-btn__text']")
                 ?.Any(node => node.InnerText is "1 Season")
                 is true)
                 return new[] { 1 };
 
             var seasonListNode = htmlDocument.DocumentNode.SelectSingleNode("//select[@id='browse-episodes-season']");
             if (seasonListNode is null)
-                throw new ImdbHtmlChangedException("Cannot find any season section in div[@class='ipc-button__text'] or select[@id='browse-episodes-season']");
+                throw new ImdbHtmlChangedException("Cannot find any season section in div[@class='ipc-btn__text'] or select[@id='browse-episodes-season']");
 
             var seasonSelection = seasonListNode.SelectNodes("option");
             if (seasonSelection is null)
