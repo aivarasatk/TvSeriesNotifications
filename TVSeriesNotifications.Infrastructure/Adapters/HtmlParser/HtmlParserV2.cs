@@ -43,7 +43,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
 
-            var yearRangeNode = htmlDocument.DocumentNode.SelectSingleNode("//a[@class='ipc-link ipc-link--baseAlt ipc-link--inherit-color sc-8c396aa2-1 iOtMms']");
+            var yearRangeNode = htmlDocument.DocumentNode.SelectSingleNode("//a[@class='ipc-link ipc-link--baseAlt ipc-link--inherit-color sc-f26752fb-1 hMnkBf']");
             if (yearRangeNode is null)
                 throw new ImdbHtmlChangedException("Cannot find tv show year range in tv show page contents");
 
