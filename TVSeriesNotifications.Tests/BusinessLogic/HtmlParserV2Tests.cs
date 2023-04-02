@@ -92,7 +92,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         }
 
         private const string ValidSingleSeasonNodeHtml = @"
-        <div class=""ipc-btn__text"">1 Season</div>";
+        <span class=""ipc-btn__text"">1 Season</span>";
 
         private const string ValidMultiSeasonNodesHtml = @"
         <select id=""browse-episodes-season"">
@@ -117,14 +117,14 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         <span></span>";
 
         private const string MissingDateRangeSeparatorHtml = @"
-        <a class=""ipc-link ipc-link--baseAlt ipc-link--inherit-color sc-f26752fb-1 hMnkBf"">
+        <a class=""ipc-link ipc-link--baseAlt ipc-link--inherit-color"">
             2010
         </a>";
 
         private string DateRangeHtmlBuilder(string range)
         {
             return @$"
-            <a class=""ipc-link ipc-link--baseAlt ipc-link--inherit-color sc-f26752fb-1 hMnkBf"">
+            <a class=""ipc-link ipc-link--baseAlt ipc-link--inherit-color"">
                 {range}
             </a>";
         }

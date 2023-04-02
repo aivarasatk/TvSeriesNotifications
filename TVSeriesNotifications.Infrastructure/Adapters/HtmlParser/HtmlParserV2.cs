@@ -20,7 +20,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             htmlDocument.LoadHtml(tvShowPageContent);
 
             if (htmlDocument.DocumentNode
-                .SelectNodes("//div[@class='ipc-btn__text']")
+                .SelectNodes("//span[@class='ipc-btn__text']")
                 ?.Any(node => node.InnerText is "1 Season")
                 is true)
                 return new[] { 1 };
@@ -43,7 +43,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(tvShowPageContent);
 
-            var yearRangeNode = htmlDocument.DocumentNode.SelectSingleNode("//a[@class='ipc-link ipc-link--baseAlt ipc-link--inherit-color sc-f26752fb-1 hMnkBf']");
+            var yearRangeNode = htmlDocument.DocumentNode.SelectSingleNode("//a[@class='ipc-link ipc-link--baseAlt ipc-link--inherit-color']");
             if (yearRangeNode is null)
                 throw new ImdbHtmlChangedException("Cannot find tv show year range in tv show page contents");
 
