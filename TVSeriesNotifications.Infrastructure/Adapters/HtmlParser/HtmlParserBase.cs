@@ -19,9 +19,9 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(pageContents);
 
-            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//div[@class='airdate']")?.Select(n => n.InnerText.Trim());
+            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-1318654d-10 jEHgCG']")?.Select(n => n.InnerText.Trim());
             if (airDatesText is null || !airDatesText.Any())
-                throw new ImdbHtmlChangedException($"No air dates found");
+                return false;
 
             return SeasonAirDates(airDatesText).OrderBy(d => d).FirstOrDefault(d => d <= _dateTimeProvider.Now.Date) != default;
         }
@@ -30,7 +30,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
         {
             foreach (var dateText in airDatesText)
             {
-                if (DateTime.TryParseExact(dateText, new[] { "d MMM. yyyy", "d MMM yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                if (DateTime.TryParseExact(dateText, new[] { "MMMM d, yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
                     yield return date;
             }
         }
