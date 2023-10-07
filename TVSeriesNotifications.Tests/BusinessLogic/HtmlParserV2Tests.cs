@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using Moq;
+using System;
+using System.Linq;
 using TVSeriesNotifications.Core.DateTimeProvider;
 using TVSeriesNotifications.Domain.Ports.HtmlParser;
 using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser;
@@ -13,7 +15,9 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
         public HtmlParserV2Tests()
         {
-            _parser = new HtmlParserV2(new DateTimeProvider());
+            var dateTimeMock = new Mock<IDateTimeProvider>();
+            dateTimeMock.Setup(provider => provider.Now).Returns(new DateTime(2023,01,01, 0, 0, 0, DateTimeKind.Utc));
+            _parser = new HtmlParserV2(dateTimeMock.Object);
         }
 
         [Fact]
@@ -91,6 +95,21 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             Assert.Equal(isCancelled, result);
         }
 
+        [Theory]
+        [InlineData("Fri, Feb 4, 2022", true)]
+        [InlineData("Fri, Feb 4, 2024", false)]
+        [InlineData("2024", false)]
+        [InlineData("Dec 2024", false)]
+        [InlineData("", false)]
+        public void GivenSeasonPageContents_ReturnsWhetherSeasonHasAired(string dateText, bool hasAired)
+        {
+            // Arrange && Act
+            var result = _parser.AnyEpisodeHasAired(SeasonPageHtmlBuilder(dateText));
+
+            // Assert
+            Assert.Equal(hasAired, result);
+        }
+
         private const string ValidSingleSeasonNodeHtml = @"
         <span class=""ipc-btn__text"">1 Season</span>";
 
@@ -127,6 +146,11 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             <a class=""ipc-link ipc-link--baseAlt ipc-link--inherit-color"">
                 {range}
             </a>";
+        }
+
+        private string SeasonPageHtmlBuilder(string dateText)
+        {
+            return @$"<span class=""sc-1318654d-10 jEHgCG"">{dateText}</span>";
         }
     }
 }

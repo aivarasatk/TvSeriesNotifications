@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using HtmlAgilityPack;
 using TVSeriesNotifications.Core.DateTimeProvider;
-using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 
 namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
 {
@@ -30,7 +29,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
         {
             foreach (var dateText in airDatesText)
             {
-                if (DateTime.TryParseExact(dateText, new[] { "MMMM d, yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                if (DateTime.TryParseExact(dateText, new[] { "ddd, MMM d, yyyy", "MMM yyyy", "yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
                     yield return date;
             }
         }
