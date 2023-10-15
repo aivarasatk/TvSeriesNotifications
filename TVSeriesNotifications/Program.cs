@@ -68,7 +68,8 @@ namespace TVSeriesNotifications
             }, 
             new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = 50,
+                MaxDegreeOfParallelism = -1,
+                BoundedCapacity = 10
             });
 
             foreach (var tvShow in tvShows)
