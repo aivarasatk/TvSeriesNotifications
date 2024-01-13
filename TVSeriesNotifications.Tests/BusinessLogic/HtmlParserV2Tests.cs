@@ -16,7 +16,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         public HtmlParserV2Tests()
         {
             var dateTimeMock = new Mock<IDateTimeProvider>();
-            dateTimeMock.Setup(provider => provider.Now).Returns(new DateTime(2023,01,01, 0, 0, 0, DateTimeKind.Utc));
+            dateTimeMock.Setup(provider => provider.Now).Returns(new DateTime(2023,01,02, 0, 0, 0, DateTimeKind.Utc));
             _parser = new HtmlParserV2(dateTimeMock.Object);
         }
 
@@ -97,6 +97,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
         [Theory]
         [InlineData("Fri, Feb 4, 2022", true)]
+        [InlineData("2023", false)]
         [InlineData("Fri, Feb 4, 2024", false)]
         [InlineData("2024", false)]
         [InlineData("Dec 2024", false)]

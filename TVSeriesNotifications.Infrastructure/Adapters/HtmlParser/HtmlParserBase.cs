@@ -22,7 +22,11 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             if (airDatesText is null || !airDatesText.Any())
                 return false;
 
-            return SeasonAirDates(airDatesText).OrderBy(d => d).FirstOrDefault(d => d <= _dateTimeProvider.Now.Date) != default;
+            var nowDate = _dateTimeProvider.Now.Date;
+            var defaultUpcomingReleaseDate = new DateTime(nowDate.Year, 1, 1); // when specified as "yyyy" in IMDB
+            return SeasonAirDates(airDatesText)
+                .OrderBy(d => d)
+                .FirstOrDefault(d => d <= nowDate && d != defaultUpcomingReleaseDate) != default;
         }
 
         private static IEnumerable<DateTime> SeasonAirDates(IEnumerable<string> airDatesText)
