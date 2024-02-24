@@ -18,7 +18,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(pageContents);
 
-            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-9115db22-10 fyHWhz']")?.Select(n => n.InnerText.Trim());
+            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-f2169d65-10 iZXnmI']")?.Select(n => n.InnerText.Trim());
             if (airDatesText is null || !airDatesText.Any())
                 return false;
 
