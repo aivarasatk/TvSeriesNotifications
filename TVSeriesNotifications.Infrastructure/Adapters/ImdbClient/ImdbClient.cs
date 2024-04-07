@@ -50,6 +50,7 @@ namespace TVSeriesNotifications.Api
         private async Task<string> GetRequestAsync(string url)
         {
             using var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
