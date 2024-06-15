@@ -151,7 +151,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
         private string SeasonPageHtmlBuilder(string dateText)
         {
-            return @$"<span class=""sc-f2169d65-10 iZXnmI"">{dateText}</span>";
+            return @$"<span class=""sc-ccd6e31b-10 fVspdm"">{dateText}</span>";
         }
     }
 }

@@ -39,19 +39,8 @@ namespace TVSeriesNotifications
         public static async Task Main()
         {
             var stopwatch = Stopwatch.StartNew();
-            try
-            {
-                var tvShows = await _tvShowRepository.RetrieveTvShows();
-                await CheckForNewSeasonsAsync(tvShows);
-            }
-            catch (ImdbHtmlChangedException ihce)
-            {
-                _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed exception ({ihce.InnerException}): {ihce.Message}{Environment.NewLine}{ihce.StackTrace}");
-            }
-            catch (Exception ex)
-            {
-                _notificationService.NotifyAboutErrors($"{DateTime.Now}: Unexpected exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
-            }
+            var tvShows = await _tvShowRepository.RetrieveTvShows();
+            await CheckForNewSeasonsAsync(tvShows);
 
             Console.WriteLine($"Elapsed: {stopwatch.Elapsed.TotalSeconds}");
         }
@@ -60,10 +49,21 @@ namespace TVSeriesNotifications
         {
             var worker = new ActionBlock<string>(async tvShow =>
             {
-                var (newSeasonAired, newSeason) = await _seasonChecker.TryCheckForNewSeasonAsync(tvShow);
-                if (newSeasonAired)
+                try
                 {
-                    _notificationService.NotifyNewSeason(newSeason);
+                    var (newSeasonAired, newSeason) = await _seasonChecker.TryCheckForNewSeasonAsync(tvShow);
+                    if (newSeasonAired)
+                    {
+                        _notificationService.NotifyNewSeason(newSeason);
+                    }
+                }
+                catch (ImdbHtmlChangedException ihce)
+                {
+                    _notificationService.NotifyAboutErrors($"{DateTime.Now}: HTML changed exception ({ihce.InnerException}): {ihce.Message}{Environment.NewLine}{ihce.StackTrace}");
+                }
+                catch (Exception ex)
+                {
+                    _notificationService.NotifyAboutErrors($"{DateTime.Now}: Unexpected exception: {ex.Message}{Environment.NewLine}{ex.StackTrace}");
                 }
             }, 
             new ExecutionDataflowBlockOptions

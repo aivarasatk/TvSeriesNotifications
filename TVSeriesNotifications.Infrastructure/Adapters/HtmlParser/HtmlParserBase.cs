@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using HtmlAgilityPack;
 using TVSeriesNotifications.Core.DateTimeProvider;
+using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
 
 namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
 {
@@ -18,8 +19,12 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(pageContents);
 
-            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-f2169d65-10 iZXnmI']")?.Select(n => n.InnerText.Trim());
-            if (airDatesText is null || !airDatesText.Any())
+            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-ccd6e31b-10 fVspdm']")?.Select(n => n.InnerText.Trim());
+
+            if (airDatesText is null)
+                throw new ImdbHtmlChangedException("Episode air date span[@class='sc-ccd6e31b-10 fVspdm'] was not found");
+
+            if (!airDatesText.Any())
                 return false;
 
             var nowDate = _dateTimeProvider.Now.Date;
