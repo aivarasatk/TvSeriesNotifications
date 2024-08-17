@@ -102,13 +102,47 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         [InlineData("2024", false)]
         [InlineData("Dec 2024", false)]
         [InlineData("", false)]
-        public void GivenSeasonPageContents_ReturnsWhetherSeasonHasAired(string dateText, bool hasAired)
+        public void GivenSeasonPageWithAirDateContents_ReturnsWhetherSeasonHasAired(string dateText, bool hasAired)
         {
             // Arrange && Act
-            var result = _parser.AnyEpisodeHasAired(SeasonPageHtmlBuilder(dateText));
+            var result = _parser.AnyEpisodeHasAired(SeasonPageWithAirDateHtmlBuilder(dateText));
 
             // Assert
             Assert.Equal(hasAired, result);
+        }
+
+        [Fact]
+        public void GivenSeasonPageWithUnairedEpisodeHtml_ReturnsSeasonUnaired()
+        {
+            // Arrange && Act
+            var result = _parser.AnyEpisodeHasAired(SeasonPageWithUnairedEpisodeHtml());
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void GivenSeasonPageWithAiredEpisodeHtml_ReturnsSeasonAired()
+        {
+            // Arrange && Act
+            var result = _parser.AnyEpisodeHasAired(SeasonPageWithAiredEpisodeHtml());
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void GivenSeasonPageWithMissingAirDateEpisodeHtml_Throws()
+        {
+            //Arrange && Act Assert
+            Assert.Throws<ImdbHtmlChangedException>(() => _parser.AnyEpisodeHasAired(SeasonPageWithMissingAirDateEpisodeHtml()));
+        }
+
+        [Fact]
+        public void GivenSeasonPageWithMissingEpisodeRatingHtml_Throws()
+        {
+            //Arrange && Act Assert
+            Assert.Throws<ImdbHtmlChangedException>(() => _parser.AnyEpisodeHasAired(SeasonPageWithMissingEpisodeRatingHtml()));
         }
 
         private const string ValidSingleSeasonNodeHtml = @"
@@ -149,9 +183,56 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             </a>";
         }
 
-        private string SeasonPageHtmlBuilder(string dateText)
+        private string SeasonPageWithAirDateHtmlBuilder(string dateText)
         {
-            return @$"<span class=""sc-ccd6e31b-10 fVspdm"">{dateText}</span>";
+            return @$"
+                    <html>
+                    <span class=""sc-ccd6e31b-10 dYquTu"">{dateText}</span>
+
+                    <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU"">
+                        <span/><button/>
+                    </div>
+                    </html>
+                    ";
         }
+
+        private string SeasonPageWithUnairedEpisodeHtml()
+        {
+            return @$"
+            <html>
+            <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU""></div>
+            </html>
+            ";
+        }
+
+        private string SeasonPageWithAiredEpisodeHtml()
+        {
+            return @$"
+            <html>
+            <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU"">
+                <span></span><button></button>
+            </div>
+
+            <span class=""sc-ccd6e31b-10 dYquTu"">Fri, Feb 4, 2022</span>
+            </html>
+            ";
+        }
+
+        private string SeasonPageWithMissingAirDateEpisodeHtml()
+        {
+            return @$"
+            <html>
+            <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU"">
+                <span/><button/>
+            </div>
+            </html>
+            ";
+        }
+
+        private string SeasonPageWithMissingEpisodeRatingHtml()
+        {
+            return @$"<html></html>";
+        }
+
     }
 }
