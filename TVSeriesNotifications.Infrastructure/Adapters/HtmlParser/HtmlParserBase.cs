@@ -21,14 +21,14 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             htmlDocument.LoadHtml(pageContents);
 
             var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-ccd6e31b-10 dYquTu']")?.Select(n => n.InnerText.Trim());
-            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU']")?.Any(node => node.ChildNodes.Count != 0);
+            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr']")?.Any(node => node.ChildNodes.Count != 0);
            
             if(episodeIsRateable is null)
             {
                 throw new ImdbHtmlChangedException("Episode rating was not found");
             }
 
-            if(airDatesText is null && episodeIsRateable.Value) 
+            if(airDatesText is null && episodeIsRateable.Value)
             {
                 throw new ImdbHtmlChangedException("Episode air date was not found");
             }

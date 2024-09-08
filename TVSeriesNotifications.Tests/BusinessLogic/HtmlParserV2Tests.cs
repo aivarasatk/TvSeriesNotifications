@@ -189,7 +189,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                     <html>
                     <span class=""sc-ccd6e31b-10 dYquTu"">{dateText}</span>
 
-                    <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU"">
+                    <div class=""sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr"">
                         <span/><button/>
                     </div>
                     </html>
@@ -200,7 +200,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         {
             return @$"
             <html>
-            <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU""></div>
+            <div class=""sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr""></div>
             </html>
             ";
         }
@@ -209,7 +209,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         {
             return @$"
             <html>
-            <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU"">
+            <div class=""sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr"">
                 <span></span><button></button>
             </div>
 
@@ -222,7 +222,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         {
             return @$"
             <html>
-            <div class=""sc-e2dbc1a3-0 jeHPdh sc-282bae8e-3 eJhLqU"">
+            <div class=""sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr"">
                 <span/><button/>
             </div>
             </html>
