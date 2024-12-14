@@ -187,7 +187,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         {
             return @$"
                     <html>
-                    <span class=""sc-ccd6e31b-10 dYquTu"">{dateText}</span>
+                    <span class=""sc-f2169d65-10 bYaARM"">{dateText}</span>
 
                     <div class=""sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr"">
                         <span/><button/>
@@ -213,7 +213,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
                 <span></span><button></button>
             </div>
 
-            <span class=""sc-ccd6e31b-10 dYquTu"">Fri, Feb 4, 2022</span>
+            <span class=""sc-f2169d65-10 bYaARM"">Fri, Feb 4, 2022</span>
             </html>
             ";
         }
