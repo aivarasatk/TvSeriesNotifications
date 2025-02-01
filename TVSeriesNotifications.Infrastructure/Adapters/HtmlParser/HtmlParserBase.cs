@@ -21,7 +21,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             htmlDocument.LoadHtml(pageContents);
 
             var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-f2169d65-10 bYaARM']")?.Select(n => n.InnerText.Trim());
-            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-e2dbc1a3-0 jeHPdh sc-f8507e90-3 gXpDlr']")?.Any(node => node.ChildNodes.Count != 0);
+            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-e2dbc1a3-0 jeHPdh sc-663ab24a-3 dJmbUc']")?.Any(node => node.ChildNodes.Count != 0);
            
             if(episodeIsRateable is null)
             {
