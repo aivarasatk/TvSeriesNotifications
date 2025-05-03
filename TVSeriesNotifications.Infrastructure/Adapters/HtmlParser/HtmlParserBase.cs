@@ -20,8 +20,8 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(pageContents);
 
-            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-f2169d65-10 bYaARM']")?.Select(n => n.InnerText.Trim());
-            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-e2dbc1a3-0 jeHPdh sc-663ab24a-3 dJmbUc']")?.Any(node => node.ChildNodes.Count != 0);
+            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-c68fa612-10 cYdBsy']")?.Select(n => n.InnerText.Trim());
+            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-bfa1b6a1-0 ezSnho sc-fcf4d924-3 faLwWr']")?.Any(node => node.ChildNodes.Count != 0);
            
             if(episodeIsRateable is null)
             {
