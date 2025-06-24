@@ -17,7 +17,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
         {
             var dateTimeMock = new Mock<IDateTimeProvider>();
             dateTimeMock.Setup(provider => provider.Now).Returns(new DateTime(2023,01,02, 0, 0, 0, DateTimeKind.Utc));
-            _parser = new HtmlParserV2(dateTimeMock.Object);
+            _parser = new HtmlParserV2(dateTimeMock.Object, new HtmlElement("span", "class", "sc-f2169d65-10 bYaARM"));
         }
 
         [Fact]
@@ -131,19 +131,6 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
             Assert.True(result);
         }
 
-        [Fact]
-        public void GivenSeasonPageWithMissingAirDateEpisodeHtml_Throws()
-        {
-            //Arrange && Act Assert
-            Assert.Throws<ImdbHtmlChangedException>(() => _parser.AnyEpisodeHasAired(SeasonPageWithMissingAirDateEpisodeHtml()));
-        }
-
-        [Fact]
-        public void GivenSeasonPageWithMissingEpisodeRatingHtml_Throws()
-        {
-            //Arrange && Act Assert
-            Assert.Throws<ImdbHtmlChangedException>(() => _parser.AnyEpisodeHasAired(SeasonPageWithMissingEpisodeRatingHtml()));
-        }
 
         private const string ValidSingleSeasonNodeHtml = @"
         <span class=""ipc-btn__text"">1 Season</span>";

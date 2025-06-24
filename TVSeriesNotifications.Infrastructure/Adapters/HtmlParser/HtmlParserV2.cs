@@ -7,8 +7,8 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
 {
     public class HtmlParserV2 : HtmlParserBase, IHtmlParser
     {
-        public HtmlParserV2(IDateTimeProvider dateTimeProvider)
-            : base(dateTimeProvider)
+        public HtmlParserV2(IDateTimeProvider dateTimeProvider, HtmlElement airDateElement)
+            : base(dateTimeProvider, airDateElement)
         {
         }
 

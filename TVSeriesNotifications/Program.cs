@@ -16,28 +16,45 @@ using TVSeriesNotifications.Persistance;
 
 namespace TVSeriesNotifications
 {
-    public static class Program
+    public class Program
     {
-        private static readonly ISeasonChecker _seasonChecker;
-        private static readonly INotificationService _notificationService;
-        private static readonly ITvShowRepository _tvShowRepository;
+        private static ISeasonChecker _seasonChecker;
+        private static INotificationService _notificationService;
+        private static ITvShowRepository _tvShowRepository;
 
-        static Program()
+
+        private static async Task<HtmlElement> ResolveSeasonAirDateElementAsync(ImdbClient client)
         {
-            var client = new ImdbClient();
-            var dateTimeProvider = new DateTimeProvider();
-            var htmlParserStrategy = new HtmlParserStrategyFactory();
-            var cacheTvShowIds = new PersistantCache<string>("Cache/TvShowIds");
-            var cacheIgnoredTvShows = new PersistantCache<string>("Cache/IgnoredTvShows");
-            var cacheLatestAiredSeasons = new PersistantCache<int>("Cache/LatestAiredSeasons");
-            _seasonChecker = new SeasonChecker(client, htmlParserStrategy, cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons, dateTimeProvider);
-
-            _notificationService = new FileNotificationService();
-            _tvShowRepository = new FileTvShowRepository(new FileSystem());
+            var outlanderTvShowId = "tt3006802";
+            var outlanderSeasonOne = await client.GetSeasonPageContentsAsync(outlanderTvShowId, 1);
+            var htmlElement = HtmlParserBase.TryResolveHtmlElement(outlanderSeasonOne, "Sat, Aug 9, 2014");
+            return htmlElement;
         }
 
         public static async Task Main()
         {
+            var client = new ImdbClient();
+            HtmlElement airDateElement;
+            try
+            {
+                airDateElement = await ResolveSeasonAirDateElementAsync(client);
+            }
+            catch
+            {
+                _notificationService.NotifyAboutErrors($"{DateTime.Now}: could not find baseline for air date HTML element");
+                return;
+            }
+
+            var dateTimeProvider = new DateTimeProvider();
+            var htmlParser = new HtmlParserV2(dateTimeProvider, airDateElement);
+            var cacheTvShowIds = new PersistantCache<string>("Cache/TvShowIds");
+            var cacheIgnoredTvShows = new PersistantCache<string>("Cache/IgnoredTvShows");
+            var cacheLatestAiredSeasons = new PersistantCache<int>("Cache/LatestAiredSeasons");
+            _seasonChecker = new SeasonChecker(client, htmlParser, cacheTvShowIds, cacheIgnoredTvShows, cacheLatestAiredSeasons, dateTimeProvider);
+
+            _notificationService = new FileNotificationService();
+            _tvShowRepository = new FileTvShowRepository(new FileSystem());
+
             var stopwatch = Stopwatch.StartNew();
             var tvShows = await _tvShowRepository.RetrieveTvShows();
             await CheckForNewSeasonsAsync(tvShows);

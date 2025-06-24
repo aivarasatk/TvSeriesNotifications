@@ -13,11 +13,8 @@ namespace TVSeriesNotifications.BusinessLogic
 {
     public class SeasonChecker : ISeasonChecker
     {
-        private readonly Dictionary<string, IHtmlParser> _htmlParsingStrategies = new();
-        private readonly object _parsingStrategyLock = new();
-
         private readonly IImdbClient _client;
-        private readonly IHtmlParserStrategyFactory _htmlParserStrategyFactory;
+        private readonly IHtmlParser _htmlParser;
         private readonly IPersistantCache<string> _cacheTvShowIds;
         private readonly IPersistantCache<string> _cacheIgnoredTvShows;
         private readonly IPersistantCache<int> _cacheLatestAiredSeasons;
@@ -25,14 +22,14 @@ namespace TVSeriesNotifications.BusinessLogic
 
         public SeasonChecker(
             IImdbClient client,
-            IHtmlParserStrategyFactory htmlParserStrategyFactory,
+            IHtmlParser htmlParser,
             IPersistantCache<string> cacheTvShowIds,
             IPersistantCache<string> cacheIgnoredTvShows,
             IPersistantCache<int> cacheLatestAiredSeasons,
             IDateTimeProvider dateTimeProvider)
         {
             _client = client;
-            _htmlParserStrategyFactory = htmlParserStrategyFactory;
+            _htmlParser = htmlParser;
             _cacheTvShowIds = cacheTvShowIds;
             _cacheIgnoredTvShows = cacheIgnoredTvShows;
             _cacheLatestAiredSeasons = cacheLatestAiredSeasons;
@@ -61,14 +58,7 @@ namespace TVSeriesNotifications.BusinessLogic
         {
             var tvShowPageContent = await _client.GetPageContentsAsync(tvShowId);
 
-            var parser = _htmlParserStrategyFactory.ResolveParsingStrategy(tvShowPageContent);
-
-            lock (_parsingStrategyLock)
-            {
-                _htmlParsingStrategies.TryAdd(tvShowId, parser);
-            }
-
-            var seasonNodes = _htmlParsingStrategies[tvShowId].Seasons(tvShowPageContent)
+            var seasonNodes = _htmlParser.Seasons(tvShowPageContent)
                 .OrderByDescending(season => season)
                 .ToArray();
 
@@ -76,7 +66,7 @@ namespace TVSeriesNotifications.BusinessLogic
             {
                 var firstUpcomingSeason = seasonNodes.LastOrDefault(s => SeasonHelper.IsUpcomingSeason(s, latestAiredSeason));
 
-                if (!SeasonHelper.HasUpcomingSeason(firstUpcomingSeason) && _htmlParsingStrategies[tvShowId].ShowIsCancelled(tvShowPageContent))
+                if (!SeasonHelper.HasUpcomingSeason(firstUpcomingSeason) && _htmlParser.ShowIsCancelled(tvShowPageContent))
                 {
                     MarkShowAsCancelled(tvShow);
                     return AsyncTryResponse<NewSeason>(false, null);
@@ -170,7 +160,7 @@ namespace TVSeriesNotifications.BusinessLogic
             try
             {
                 var content = await _client.GetSeasonPageContentsAsync(tvShowId, season);
-                return _htmlParsingStrategies[tvShowId].AnyEpisodeHasAired(content);
+                return _htmlParser.AnyEpisodeHasAired(content);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Text.Json.Serialization;
 using HtmlAgilityPack;
 using TVSeriesNotifications.Core.DateTimeProvider;
 using TVSeriesNotifications.Infrastructure.Adapters.HtmlParser.Exceptions;
@@ -9,10 +8,12 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
     public class HtmlParserBase
     {
         private readonly IDateTimeProvider _dateTimeProvider;
+        private HtmlElement _airDateElement;
 
-        public HtmlParserBase(IDateTimeProvider dateTimeProvider)
+        public HtmlParserBase(IDateTimeProvider dateTimeProvider, HtmlElement airDateElement)
         {
             _dateTimeProvider = dateTimeProvider;
+            _airDateElement = airDateElement;
         }
 
         protected bool AnyEpisodeHasAired(string pageContents)
@@ -20,21 +21,10 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(pageContents);
 
-            var airDatesText = htmlDocument.DocumentNode.SelectNodes("//span[@class='sc-c68fa612-10 cYdBsy']")?.Select(n => n.InnerText.Trim());
-            var episodeIsRateable = htmlDocument.DocumentNode.SelectNodes("//div[@class='sc-bfa1b6a1-0 ezSnho sc-fcf4d924-3 faLwWr']")?.Any(node => node.ChildNodes.Count != 0);
-           
-            if(episodeIsRateable is null)
-            {
-                throw new ImdbHtmlChangedException("Episode rating was not found");
-            }
+            var airDatesText = htmlDocument.DocumentNode.SelectNodes($"//{_airDateElement.Tag}[@{_airDateElement.Attribute}='{_airDateElement.Value}']")?.Select(n => n.InnerText.Trim());
 
-            if(airDatesText is null && episodeIsRateable.Value)
-            {
-                throw new ImdbHtmlChangedException("Episode air date was not found");
-            }
-
-            // Having no air date block and no episode rating means an unaired episode
-            if (airDatesText is null && !episodeIsRateable.Value)
+            // Having no air date block means an unaired episode
+            if (airDatesText is null)
             {
                 return false;
             }
@@ -53,14 +43,73 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
         {
             foreach (var dateText in airDatesText)
             {
-                if (DateTime.TryParseExact(dateText, new[] { "ddd, MMM d, yyyy", "MMM yyyy", "yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                if (TryParseAirDate(dateText, out var date))
                     yield return date;
             }
         }
 
-        protected static bool IsSeasonLink(HtmlNode node) =>
-            node.Attributes.Any(a => a.Name == "href" && a.Value.Contains("season") && !a.Value.Contains("-1"))
-            && !node.InnerText.ToLower().Equals("unknown")
-            && !node.InnerText.ToLower().Contains("see all");
+        private static bool TryParseAirDate(string airDateText, out DateTime date)
+        {
+            return DateTime.TryParseExact(airDateText, new[] { "ddd, MMM d, yyyy", "MMM yyyy", "yyyy" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+        }
+
+        public static HtmlElement TryResolveHtmlElement(string content, string keyword)
+        {
+            var htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(content);
+
+            var keywordIndex = htmlDocument.ParsedText.IndexOf(keyword);
+            if (keywordIndex is -1)
+            {
+                throw new Exception($"keyword not found in content: [{keyword}]");
+            }
+
+            int elementStart, elementEnd;
+
+            elementStart = htmlDocument.ParsedText.LastIndexOf('<', keywordIndex);
+            if (elementStart is -1)
+            {
+                throw new Exception($"HTML element start not found in content: [{keyword}], keyword start: {keywordIndex}");
+            }
+
+            elementEnd = htmlDocument.ParsedText.IndexOf('>', elementStart);
+            if (elementEnd is -1)  
+            {
+                throw new Exception($"HTML element end not found in content: [{keyword}], keyword start: {keywordIndex}, element start: {elementStart}");
+            }
+
+            var elementInnerPart = htmlDocument.ParsedText.Substring(elementStart+1, elementEnd - elementStart);
+
+            var parts = elementInnerPart.Split(" ");
+            if (parts.Length is 0)
+            {
+                throw new Exception($"keyword not found in content: [{keyword}]");
+            }
+            if (!validHtmlTags.Contains(parts[0]))
+            {
+                throw new Exception($"element around keyword is not a valid HTML tag, substring: [{elementInnerPart}]");
+            }
+
+            if (!parts[1].StartsWith("class"))
+            {
+                throw new Exception($"attribute was not class: {parts[1]}");
+            }
+
+            int classValueStart, classValueEnd;
+            classValueStart = htmlDocument.ParsedText.IndexOf("\"", elementStart);
+            classValueEnd = htmlDocument.ParsedText.IndexOf("\"", classValueStart+1);
+            var classValue = htmlDocument.ParsedText.Substring(classValueStart+1, classValueEnd-classValueStart - 1);
+
+            return new HtmlElement(parts[0], "class", classValue);
+        }
+
+        static HashSet<string> validHtmlTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "div", "span", "p", "a", "ul", "li", "table", "tr", "td", "img", "input", "form",
+            "button", "h1", "h2", "h3", "h4", "h5", "h6", "strong", "em", "br", "hr", "nav"
+        };
+
     }
+
+    public record HtmlElement(string Tag, string Attribute, string Value);
 }
