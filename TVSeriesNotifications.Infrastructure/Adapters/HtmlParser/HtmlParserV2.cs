@@ -21,7 +21,7 @@ namespace TVSeriesNotifications.Infrastructure.Adapters.HtmlParser
 
             if (htmlDocument.DocumentNode
                 .SelectNodes("//span[@class='ipc-btn__text']")
-                ?.Any(node => node.InnerText is "1 Season")
+                ?.Any(node => node.InnerText is "1 season")
                 is true)
                 return new[] { 1 };
 

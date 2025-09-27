@@ -133,7 +133,7 @@ namespace TVSeriesNotifications.Tests.BusinessLogic
 
 
         private const string ValidSingleSeasonNodeHtml = @"
-        <span class=""ipc-btn__text"">1 Season</span>";
+        <span class=""ipc-btn__text"">1 season</span>";
 
         private const string ValidMultiSeasonNodesHtml = @"
         <select id=""browse-episodes-season"">
